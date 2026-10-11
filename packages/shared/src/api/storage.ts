@@ -1,4 +1,5 @@
 import type { CampusClient } from './client.ts';
+import { toAppError } from '../errors.ts';
 
 export async function uploadPhoto(
   db: CampusClient,
@@ -15,9 +16,7 @@ export async function uploadPhoto(
     upsert: false,
   });
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw toAppError(error);
 
   return path;
 }
