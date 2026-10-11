@@ -136,7 +136,7 @@ async function main() {
       console.warn('[db] Running database tests...');
       // One worker without isolation, so the files share their demo logins (sign-ins are rate limited).
       run(
-        'pnpm exec vitest run supabase/tests/database --fileParallelism=false --no-isolate --testTimeout=30000 --hookTimeout=180000',
+        'pnpm exec vitest run supabase/tests/database --fileParallelism=false --no-isolate --testTimeout=60000 --hookTimeout=180000',
       );
       break;
     }

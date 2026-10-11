@@ -125,22 +125,27 @@ describe('080: AI Security and Settings', () => {
       super: superAdmin.client,
       anon: createAnonClient(),
     };
+    // 124 statements: sent together, since each one is a round trip to the hosted project
+    const nobody = '00000000-0000-4000-8000-000000000000';
+    const attempts: Promise<[string, boolean]>[] = [];
+    const attempt = (label: string, statement: PromiseLike<Parameters<typeof denied>[0]>) =>
+      attempts.push(Promise.resolve(statement).then((res) => [label, denied(res)]));
+
     for (const [who, client] of Object.entries(clients)) {
       for (const table of AI_TABLES) {
-        expect(denied(await client.from(table).insert({})), `${who} insert ${table}`).toBe(true);
+        attempt(`${who} insert ${table}`, client.from(table).insert({}));
       }
       // every table but ai_usage has an id to aim an update or a delete at
       for (const table of AI_TABLES.filter((t) => t !== 'ai_usage')) {
-        const nobody = '00000000-0000-4000-8000-000000000000';
-        expect(
-          denied(await client.from(table).update({ id: nobody }).eq('id', nobody)),
-          `${who} update ${table}`,
-        ).toBe(true);
-        expect(denied(await client.from(table).delete().eq('id', nobody)), `${who} delete ${table}`).toBe(
-          true,
-        );
+        attempt(`${who} update ${table}`, client.from(table).update({ id: nobody }).eq('id', nobody));
+        attempt(`${who} delete ${table}`, client.from(table).delete().eq('id', nobody));
       }
     }
+    const allowed = (await Promise.all(attempts))
+      .filter(([, wasDenied]) => !wasDenied)
+      .map(([label]) => label);
+    expect(attempts).toHaveLength(124);
+    expect(allowed).toEqual([]);
   });
 
   it('keeps memories, knowledge and usage unreadable through the API', async () => {
