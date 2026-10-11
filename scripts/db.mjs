@@ -21,8 +21,8 @@ if (fs.existsSync(envPath)) {
 
 const command = process.argv[2];
 
-if (!command || !['push', 'reset', 'types'].includes(command)) {
-  console.error('Usage: node scripts/db.mjs <push|reset|types>');
+if (!command || !['push', 'reset', 'types', 'test'].includes(command)) {
+  console.error('Usage: node scripts/db.mjs <push|reset|types|test>');
   process.exit(1);
 }
 
@@ -39,9 +39,25 @@ if (!projectRef || !dbUrl) {
   process.exit(1);
 }
 
+// Ensure project-ref is written to supabase/.temp if missing
+const tempDir = path.join(rootDir, 'supabase', '.temp');
+if (!fs.existsSync(tempDir)) {
+  fs.mkdirSync(tempDir, { recursive: true });
+}
+const refFile = path.join(tempDir, 'project-ref');
+if (!fs.existsSync(refFile) && projectRef) {
+  fs.writeFileSync(refFile, projectRef, 'utf8');
+}
+
 async function handleReset() {
-  console.warn('[db] Resetting linked database...');
-  run('pnpm exec supabase db reset --linked --yes');
+  console.warn('[db] Resetting database...');
+  if (process.env.SUPABASE_ACCESS_TOKEN) {
+    run('pnpm exec supabase db reset --linked --yes');
+  } else if (dbUrl) {
+    run(`pnpm exec supabase db reset --db-url "${dbUrl}" --yes`);
+  } else {
+    run('pnpm exec supabase db reset --linked --yes');
+  }
 
   console.warn('[db] Re-applying private configuration...');
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -57,11 +73,14 @@ async function handleReset() {
   const functionsBaseUrl = `${supabaseUrl}/functions/v1`;
   const internalSecret = process.env.INTERNAL_SECRET;
 
-  const { error } = await supabase.from('app_config').upsert([
-    { key: 'owner_email', value: ownerEmail },
-    { key: 'functions_base_url', value: functionsBaseUrl },
-    { key: 'internal_secret', value: internalSecret ?? '' },
-  ]);
+  const { error } = await supabase
+    .schema('private')
+    .from('app_config')
+    .upsert([
+      { key: 'owner_email', value: ownerEmail },
+      { key: 'functions_base_url', value: functionsBaseUrl },
+      { key: 'internal_secret', value: internalSecret ?? '' },
+    ]);
 
   if (error) {
     console.warn(`[db] Notice updating app_config: ${error.message}`);
@@ -91,6 +110,11 @@ async function main() {
       );
       fs.writeFileSync(targetPath, typesOutput, 'utf8');
       console.warn(`[db] Generated ${targetPath}`);
+      break;
+    }
+    case 'test': {
+      console.warn('[db] Running database tests...');
+      run('pnpm exec vitest run supabase/tests/database --fileParallelism=false --testTimeout=30000');
       break;
     }
   }
