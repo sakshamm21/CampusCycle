@@ -39,9 +39,25 @@ if (!projectRef || !dbUrl) {
   process.exit(1);
 }
 
+// Ensure project-ref is written to supabase/.temp if missing
+const tempDir = path.join(rootDir, 'supabase', '.temp');
+if (!fs.existsSync(tempDir)) {
+  fs.mkdirSync(tempDir, { recursive: true });
+}
+const refFile = path.join(tempDir, 'project-ref');
+if (!fs.existsSync(refFile) && projectRef) {
+  fs.writeFileSync(refFile, projectRef, 'utf8');
+}
+
 async function handleReset() {
-  console.warn('[db] Resetting linked database...');
-  run('pnpm exec supabase db reset --linked --yes');
+  console.warn('[db] Resetting database...');
+  if (process.env.SUPABASE_ACCESS_TOKEN) {
+    run('pnpm exec supabase db reset --linked --yes');
+  } else if (dbUrl) {
+    run(`pnpm exec supabase db reset --db-url "${dbUrl}" --yes`);
+  } else {
+    run('pnpm exec supabase db reset --linked --yes');
+  }
 
   console.warn('[db] Re-applying private configuration...');
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

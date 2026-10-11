@@ -59,6 +59,8 @@ jobs:
         run: |
           echo "$DEV_ENV_FILE" > .env
           grep '^NEXT_PUBLIC_' .env > apps/admin/.env.local || true
+          mkdir -p supabase/.temp
+          grep '^SUPABASE_PROJECT_REF=' .env | cut -d= -f2 | tr -d ' "\r\n' > supabase/.temp/project-ref
 
       - name: Run database tests
         env:
