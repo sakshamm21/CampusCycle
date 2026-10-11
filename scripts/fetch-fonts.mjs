@@ -7,8 +7,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 const outDir = path.join(rootDir, 'apps', 'mobile', 'assets', 'fonts');
+const adminOutDir = path.join(rootDir, 'apps', 'admin', 'public', 'fonts');
 
 fs.mkdirSync(outDir, { recursive: true });
+fs.mkdirSync(adminOutDir, { recursive: true });
 
 const FONTS = [
   { family: 'Archivo:wdth,wght@125,900', file: 'ArchivoExpanded-Black.ttf' },
@@ -65,6 +67,8 @@ async function downloadFont(item) {
   const buffer = Buffer.from(arrayBuffer);
   const targetPath = path.join(outDir, item.file);
   fs.writeFileSync(targetPath, buffer);
+  const adminTargetPath = path.join(adminOutDir, item.file);
+  fs.writeFileSync(adminTargetPath, buffer);
   console.warn(`[fonts] Downloaded ${item.file} (${buffer.length} bytes)`);
 }
 

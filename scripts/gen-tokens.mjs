@@ -72,4 +72,3 @@ ${formatPaletteVars(palette.day)}
 const targetFile = path.join(outDir, 'tokens.css');
 fs.writeFileSync(targetFile, content, 'utf8');
 console.warn('[tokens] Generated apps/admin/src/app/tokens.css');
-

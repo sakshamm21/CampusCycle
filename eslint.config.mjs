@@ -7,6 +7,7 @@ export default tseslint.config(
     ignores: [
       '**/node_modules/**',
       '**/database.types.ts',
+      '**/next-env.d.ts',
       'supabase/functions/_shared/vendor/**',
       '**/.next/**',
       '**/dist/**',
