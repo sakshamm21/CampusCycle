@@ -8,3 +8,7 @@ export * from './validation.ts';
 export * from './types.ts';
 export * from './database.types.ts';
 export * from './api/client.ts';
+export * from './api/rider.ts';
+export * from './api/admin.ts';
+export * from './api/storage.ts';
+export * from './api/torq.ts';
