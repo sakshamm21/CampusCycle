@@ -25,10 +25,21 @@ export async function requireUser(req: Request) {
   return { error: null, user, userDb: client };
 }
 
+// Compares every byte whatever the input, so the time taken says nothing about the secret.
+function timingSafeEqual(a: string, b: string): boolean {
+  const x = new TextEncoder().encode(a);
+  const y = new TextEncoder().encode(b);
+  let diff = x.length ^ y.length;
+  for (let i = 0; i < x.length; i++) {
+    diff |= x[i] ^ (y[i % y.length] ?? 0);
+  }
+  return diff === 0;
+}
+
 export function requireInternal(req: Request): Response | null {
   const secret = req.headers.get('x-internal-secret');
   const expected = Deno.env.get('INTERNAL_SECRET');
-  if (!secret || !expected || secret !== expected) {
+  if (!secret || !expected || !timingSafeEqual(secret, expected)) {
     return json(401, { code: 'CC_FORBIDDEN', message: 'Invalid internal secret.' });
   }
   return null;

@@ -60,6 +60,11 @@ Deno.serve(async (req) => {
   if (callerProfile.role === 'college_admin' && callerProfile.college_id !== targetProfile.college_id) {
     return json(403, { code: 'CC_FORBIDDEN', message: 'Cannot reset passwords for another college.' });
   }
+  // Nobody resets the password of an equal or higher role: that would hand them the account.
+  const resettable = callerProfile.role === 'super_admin' ? ['rider', 'college_admin'] : ['rider'];
+  if (!resettable.includes(targetProfile.role)) {
+    return json(403, { code: 'CC_FORBIDDEN', message: 'Cannot reset the password of this role.' });
+  }
 
   // 3. Generate temporary password
   const tempPassword = generateTempPassword();
@@ -67,7 +72,8 @@ Deno.serve(async (req) => {
   // 4. Update auth user password
   const { error: pwErr } = await db.auth.admin.updateUserById(user_id, { password: tempPassword });
   if (pwErr) {
-    return json(500, { code: 'CC_SERVER_ERROR', message: pwErr.message });
+    console.error(`[admin-reset-password] ${pwErr.message}`);
+    return json(500, { code: 'CC_UNKNOWN', message: 'Could not reset the password.' });
   }
 
   await db.from('profiles').update({ password_reset_requested_at: null }).eq('id', user_id);

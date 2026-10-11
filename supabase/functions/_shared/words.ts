@@ -202,7 +202,7 @@ export const WORDS = [
 ];
 
 export function generateTempPassword(): string {
-  const pick = () => WORDS[Math.floor(Math.random() * WORDS.length)];
-  const num = Math.floor(10 + Math.random() * 90);
-  return `${pick()}-${pick()}-${pick()}-${num}`;
+  const r = crypto.getRandomValues(new Uint32Array(4));
+  const pick = (n: number) => WORDS[n % WORDS.length];
+  return `${pick(r[0])}-${pick(r[1])}-${pick(r[2])}-${10 + (r[3] % 90)}`;
 }

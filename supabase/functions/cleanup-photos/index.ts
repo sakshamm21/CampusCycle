@@ -2,6 +2,9 @@ import { handleOptions, json } from '../_shared/http.ts';
 import { requireInternal } from '../_shared/auth.ts';
 import { serviceDb } from '../_shared/clients.ts';
 
+const MAX_PER_RUN = 500;
+const BATCH = 100;
+
 Deno.serve(async (req) => {
   const opt = handleOptions(req);
   if (opt) return opt;
@@ -10,48 +13,97 @@ Deno.serve(async (req) => {
   if (authErr) return authErr;
 
   const db = serviceDb();
-  let removedCount = 0;
+  const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  let removed = 0;
 
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  // Removes the files, then clears the column only for rows whose file is really gone,
+  // so a failed delete is retried on the next run instead of leaving an orphan.
+  async function purge(
+    bucket: string,
+    table: 'rides' | 'issue_reports',
+    column: 'return_photo_path' | 'photo_path',
+    rows: { id: string; path: string }[],
+  ) {
+    for (let i = 0; i < rows.length; i += BATCH) {
+      const batch = rows.slice(i, i + BATCH);
+      const { error } = await db.storage.from(bucket).remove(batch.map((r) => r.path));
+      if (error) {
+        console.error(`[cleanup-photos] ${bucket}: ${error.message}`);
+        continue;
+      }
+      const { error: updateErr } = await db
+        .from(table)
+        .update({ [column]: null })
+        .in(
+          'id',
+          batch.map((r) => r.id),
+        );
+      if (updateErr) {
+        console.error(`[cleanup-photos] ${table}: ${updateErr.message}`);
+        continue;
+      }
+      removed += batch.length;
+    }
+  }
 
-  // 1. Clean return photos
-  const { data: rides } = await db
+  // 1. Return photos of rides that ended more than 30 days ago
+  const { data: rides, error: ridesErr } = await db
     .from('rides')
     .select('id, return_photo_path')
     .not('return_photo_path', 'is', null)
-    .lt('ended_at', thirtyDaysAgo)
-    .limit(500);
+    .lt('ended_at', cutoff)
+    .limit(MAX_PER_RUN);
+  if (ridesErr) return json(500, { code: 'CC_UNKNOWN', message: ridesErr.message });
+  await purge(
+    'return-photos',
+    'rides',
+    'return_photo_path',
+    (rides ?? []).map((r) => ({ id: r.id, path: r.return_photo_path as string })),
+  );
 
-  if (rides && rides.length > 0) {
-    const paths = rides.map((r) => r.return_photo_path).filter(Boolean) as string[];
-    for (let i = 0; i < paths.length; i += 100) {
-      const batch = paths.slice(i, i + 100);
-      await db.storage.from('return-photos').remove(batch);
-    }
-    const rideIds = rides.map((r) => r.id);
-    await db.from('rides').update({ return_photo_path: null }).in('id', rideIds);
-    removedCount += paths.length;
-  }
-
-  // 2. Clean issue photos of resolved issues older than 30 days
-  const { data: issues } = await db
+  // 2. Photos of issues resolved more than 30 days ago
+  const { data: issues, error: issuesErr } = await db
     .from('issue_reports')
     .select('id, photo_path')
     .not('photo_path', 'is', null)
     .eq('status', 'resolved')
-    .lt('resolved_at', thirtyDaysAgo)
-    .limit(500);
+    .lt('resolved_at', cutoff)
+    .limit(MAX_PER_RUN);
+  if (issuesErr) return json(500, { code: 'CC_UNKNOWN', message: issuesErr.message });
+  await purge(
+    'issue-photos',
+    'issue_reports',
+    'photo_path',
+    (issues ?? []).map((r) => ({ id: r.id, path: r.photo_path as string })),
+  );
 
-  if (issues && issues.length > 0) {
-    const paths = issues.map((i) => i.photo_path).filter(Boolean) as string[];
-    for (let i = 0; i < paths.length; i += 100) {
-      const batch = paths.slice(i, i + 100);
-      await db.storage.from('issue-photos').remove(batch);
+  // 3. TORQ chat photos older than 30 days. No table points at them, so list each user's folder.
+  const stale: string[] = [];
+  const { data: folders, error: foldersErr } = await db.storage.from('torq-photos').list('', { limit: 1000 });
+  if (foldersErr) return json(500, { code: 'CC_UNKNOWN', message: foldersErr.message });
+  for (const folder of folders ?? []) {
+    if (stale.length >= MAX_PER_RUN) break;
+    const { data: files, error: filesErr } = await db.storage
+      .from('torq-photos')
+      .list(folder.name, { limit: 1000, sortBy: { column: 'created_at', order: 'asc' } });
+    if (filesErr) {
+      console.error(`[cleanup-photos] torq-photos/${folder.name}: ${filesErr.message}`);
+      continue;
     }
-    const issueIds = issues.map((i) => i.id);
-    await db.from('issue_reports').update({ photo_path: null }).in('id', issueIds);
-    removedCount += paths.length;
+    for (const file of files ?? []) {
+      if (stale.length >= MAX_PER_RUN) break;
+      if (file.created_at && file.created_at < cutoff) stale.push(`${folder.name}/${file.name}`);
+    }
+  }
+  for (let i = 0; i < stale.length; i += BATCH) {
+    const batch = stale.slice(i, i + BATCH);
+    const { error } = await db.storage.from('torq-photos').remove(batch);
+    if (error) {
+      console.error(`[cleanup-photos] torq-photos: ${error.message}`);
+      continue;
+    }
+    removed += batch.length;
   }
 
-  return json(200, { ok: true, removed: removedCount });
+  return json(200, { ok: true, removed });
 });
