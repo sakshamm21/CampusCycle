@@ -1,137 +1,221 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { adminClient, createAnonClient, createAuthenticatedClient, type SupabaseClient } from './helpers';
+import {
+  adminClient,
+  auditCount,
+  createAnonClient,
+  createTestUser,
+  createWorld,
+  deleteTestUser,
+  demoSession,
+  notificationsOf,
+  ok,
+  passOf,
+  raised,
+  row,
+  type TestUser,
+  type World,
+} from './helpers';
 
 describe('020: Sign-up and Approval Lifecycle', () => {
-  let adminUserClient: SupabaseClient;
-  let testUserId: string;
-  let collegeId: string;
+  let world: World;
+  let applicant: TestUser;
+  const extras: string[] = [];
 
   beforeAll(async () => {
-    await adminClient.rpc('admin_run_demo_reset');
-    adminUserClient = await createAuthenticatedClient('demo-admin@example.com');
-    const { data: college } = await adminClient
-      .from('colleges')
-      .select('id')
-      .eq('short_code', 'IITK')
-      .single();
-    collegeId = college!.id;
+    world = await createWorld({ riders: 0, bikes: 1 });
   });
 
   afterAll(async () => {
-    if (testUserId) {
-      await adminClient.auth.admin.deleteUser(testUserId);
-    }
-    await adminClient.rpc('admin_run_demo_reset');
+    for (const id of extras) await deleteTestUser(id);
+    await world?.destroy();
   });
 
-  it('new auth user creates profile + pending pass with domain match flag', async () => {
-    const testEmail = `test_applicant_${Date.now()}@iitk.ac.in`;
-    const { data: authRes, error } = await adminClient.auth.admin.createUser({
-      email: testEmail,
-      password: 'test-password-1234',
+  it('creates a pending profile and pass from the sign-up metadata and alerts the admins', async () => {
+    applicant = await createTestUser(world.collegeId, { name: 'Asha Applicant' });
+
+    expect(await row('profiles', applicant.id)).toMatchObject({
+      college_id: world.collegeId,
+      full_name: 'Asha Applicant',
+      role: 'rider',
+      status: 'pending',
+      email_domain_match: true,
+      is_demo: false,
+      is_owner: false,
+    });
+    expect(await passOf(applicant.id)).toMatchObject({
+      college_id: world.collegeId,
+      status: 'pending',
+      pass_number: null,
+    });
+    const alerts = await notificationsOf(world.admin.id, 'admin_alert');
+    expect(alerts).toContainEqual({ title: 'New rider waiting', body: 'Asha Applicant asked to join.' });
+  });
+
+  it('never takes the role from sign-up metadata', async () => {
+    const { data, error } = await adminClient.auth.admin.createUser({
+      email: `t-role-${Date.now()}@cctest.example.com`,
+      password: 'cc-test-password-2026',
       email_confirm: true,
       user_metadata: {
-        full_name: 'Test Applicant',
-        college_id: collegeId,
-        phone: '+91 99999 88888',
-        roll_number: '240999',
+        full_name: 'Sneaky',
+        college_id: world.collegeId,
+        role: 'super_admin',
+        status: 'approved',
       },
     });
     expect(error).toBeNull();
-    testUserId = authRes.user.id;
-
-    // Verify profile created automatically by auth trigger
-    const { data: profile } = await adminClient.from('profiles').select('*').eq('id', testUserId).single();
-    expect(profile).toBeDefined();
-    expect(profile.status).toBe('pending');
-    expect(profile.email_domain_match).toBe(true);
-
-    // Verify pass created in pending state
-    const { data: pass } = await adminClient
-      .from('rider_passes')
-      .select('*')
-      .eq('rider_id', testUserId)
-      .single();
-    expect(pass).toBeDefined();
-    expect(pass.status).toBe('pending');
+    extras.push(data.user!.id);
+    expect(await row('profiles', data.user!.id)).toMatchObject({ role: 'rider', status: 'pending' });
   });
 
-  it('reject_rider without reason fails with CC_REASON_REQUIRED', async () => {
-    const { data: applicant } = await adminClient
-      .from('profiles')
-      .select('id')
-      .eq('email', 'applicant01@example.com')
-      .single();
+  it('leaves email_domain_match false for a domain the college does not list', async () => {
+    const outsider = await createTestUser(world.collegeId, { domain: 'elsewhere.example.com', login: false });
+    extras.push(outsider.id);
+    expect((await row('profiles', outsider.id)).email_domain_match).toBe(false);
+  });
 
-    const { error } = await adminUserClient.rpc('reject_rider', {
-      p_user_id: applicant!.id,
-      p_reason: '',
+  it('lets a pending applicant edit their application', async () => {
+    ok(
+      await applicant.client.rpc('update_application', {
+        p_full_name: 'Asha A. Applicant',
+        p_phone: '+91 98765 43210',
+        p_roll_number: '240123',
+        p_college_id: world.collegeId,
+      }),
+    );
+    expect(await row('profiles', applicant.id)).toMatchObject({
+      full_name: 'Asha A. Applicant',
+      phone: '+91 98765 43210',
+      roll_number: '240123',
+      status: 'pending',
     });
-    expect(error?.message).toContain('CC_REASON_REQUIRED');
   });
 
-  it('approve_rider issues pass number, ready status, and creates notification', async () => {
-    const { data: applicant } = await adminClient
-      .from('profiles')
-      .select('id')
-      .eq('email', 'applicant01@example.com')
-      .single();
+  it('refuses a rejection without a reason', async () => {
+    const res = await world.admin.client.rpc('reject_rider', { p_user_id: applicant.id, p_reason: ' ' });
+    expect(raised(res)).toBe('CC_REASON_REQUIRED');
+    expect((await row('profiles', applicant.id)).status).toBe('pending');
+  });
 
-    const { data, error } = await adminUserClient.rpc('approve_rider', {
-      p_user_id: applicant!.id,
+  it('refuses an admin of another college', async () => {
+    const demoAdmin = await demoSession('admin');
+    const res = await demoAdmin.client.rpc('approve_rider', { p_user_id: applicant.id });
+    expect(raised(res)).toBe('CC_FORBIDDEN');
+    expect((await row('profiles', applicant.id)).status).toBe('pending');
+  });
+
+  it('rejects with a reason and tells the applicant', async () => {
+    ok(
+      await world.admin.client.rpc('reject_rider', {
+        p_user_id: applicant.id,
+        p_reason: 'Roll number does not match',
+      }),
+    );
+    expect(await row('profiles', applicant.id)).toMatchObject({
+      status: 'rejected',
+      rejection_reason: 'Roll number does not match',
     });
-    expect(error).toBeNull();
-    expect(data?.ok).toBe(true);
-    expect(data?.pass_label).toBeDefined();
-
-    const { data: pass } = await adminClient
-      .from('rider_passes')
-      .select('*')
-      .eq('rider_id', applicant!.id)
-      .single();
-    expect(pass?.status).toBe('ready');
-
-    const { data: notifs } = await adminClient
-      .from('notifications')
-      .select('*')
-      .eq('user_id', applicant!.id)
-      .eq('kind', 'approval');
-    expect(notifs?.length).toBeGreaterThan(0);
+    expect(await notificationsOf(applicant.id, 'rejection')).toEqual([
+      { title: 'Application not approved', body: 'Roll number does not match' },
+    ]);
+    expect(await auditCount(world.collegeId, 'rider.reject')).toBe(1);
   });
 
-  it('approving twice fails with CC_NOT_PENDING', async () => {
-    const { data: applicant } = await adminClient
-      .from('profiles')
-      .select('id')
-      .eq('email', 'applicant01@example.com')
-      .single();
-
-    const { error } = await adminUserClient.rpc('approve_rider', {
-      p_user_id: applicant!.id,
+  it('puts a rejected applicant back to pending when they re-apply', async () => {
+    ok(
+      await applicant.client.rpc('update_application', {
+        p_full_name: 'Asha A. Applicant',
+        p_phone: '+91 98765 43210',
+        p_roll_number: '240124',
+        p_college_id: world.collegeId,
+      }),
+    );
+    expect(await row('profiles', applicant.id)).toMatchObject({
+      status: 'pending',
+      rejection_reason: null,
+      roll_number: '240124',
     });
-    expect(error?.message).toContain('CC_NOT_PENDING');
+    const alerts = await notificationsOf(world.admin.id, 'admin_alert');
+    expect(alerts.map((a) => a.title)).toContain('Rider re-applied');
   });
 
-  it('approve_riders over 50 fails with CC_TOO_MANY', async () => {
-    const dummyIds = Array.from({ length: 51 }, () => '00000000-0000-0000-0000-000000000000');
-    const { error } = await adminUserClient.rpc('approve_riders', {
-      p_user_ids: dummyIds,
+  it('approves with the next pass number of the college', async () => {
+    const before = await row('colleges', world.collegeId);
+
+    const res = ok(await world.admin.client.rpc('approve_rider', { p_user_id: applicant.id }));
+    const label = `${world.code} · ${String(before.next_pass_no).padStart(4, '0')}`;
+    expect(res.pass_label).toBe(label);
+
+    expect(await row('profiles', applicant.id)).toMatchObject({
+      status: 'approved',
+      approved_by: world.admin.id,
     });
-    expect(error?.message).toContain('CC_TOO_MANY');
+    expect(await passOf(applicant.id)).toMatchObject({ status: 'ready', pass_number: before.next_pass_no });
+    expect((await row('colleges', world.collegeId)).next_pass_no).toBe(before.next_pass_no + 1);
+    expect(await notificationsOf(applicant.id, 'approval')).toEqual([
+      { title: "You're in", body: `Your Rider Pass ${label} is live. Go ride.` },
+    ]);
+    expect(await auditCount(world.collegeId, 'rider.approve')).toBe(1);
   });
 
-  it('request_password_reset sets timestamp and returns ok without enumeration', async () => {
+  it('refuses to approve twice', async () => {
+    const res = await world.admin.client.rpc('approve_rider', { p_user_id: applicant.id });
+    expect(raised(res)).toBe('CC_NOT_PENDING');
+  });
+
+  it('refuses application edits once approved', async () => {
+    const res = await applicant.client.rpc('update_application', {
+      p_full_name: 'Someone Else',
+      p_phone: '+91 98765 43210',
+      p_roll_number: '240124',
+      p_college_id: world.collegeId,
+    });
+    expect(raised(res)).toBe('CC_NOT_EDITABLE');
+  });
+
+  it('refuses a bulk approval of more than 50', async () => {
+    const ids = Array.from({ length: 51 }, () => '00000000-0000-4000-8000-000000000000');
+    expect(raised(await world.admin.client.rpc('approve_riders', { p_user_ids: ids }))).toBe('CC_TOO_MANY');
+  });
+
+  it('bulk approves the pending ones and reports the rest', async () => {
+    const one = await createTestUser(world.collegeId, { login: false });
+    const two = await createTestUser(world.collegeId, { login: false });
+    extras.push(one.id, two.id);
+
+    const res = ok(
+      await world.admin.client.rpc('approve_riders', { p_user_ids: [one.id, applicant.id, two.id] }),
+    );
+    expect(res.approved).toBe(2);
+    expect(res.failed).toEqual([{ user_id: applicant.id, code: 'CC_NOT_PENDING' }]);
+    expect((await passOf(one.id)).status).toBe('ready');
+    expect((await passOf(two.id)).status).toBe('ready');
+  });
+
+  it('records a password reset request and alerts the admins', async () => {
     const anon = createAnonClient();
-    const { data: okKnown, error: errKnown } = await anon.rpc('request_password_reset', {
-      p_email: 'demo-rider@example.com',
-    });
-    expect(errKnown).toBeNull();
-    expect(okKnown?.ok).toBe(true);
+    ok(await anon.rpc('request_password_reset', { p_email: applicant.email.toUpperCase() }));
 
-    const { data: okUnknown, error: errUnknown } = await anon.rpc('request_password_reset', {
-      p_email: 'unknown_person_never_registered@example.com',
+    expect((await row('profiles', applicant.id)).password_reset_requested_at).not.toBeNull();
+    const alerts = await notificationsOf(world.admin.id, 'admin_alert');
+    expect(alerts).toContainEqual({
+      title: 'Password reset requested',
+      body: 'Asha A. Applicant asked for a new password.',
     });
-    expect(errUnknown).toBeNull();
-    expect(okUnknown?.ok).toBe(true);
+  });
+
+  it('answers ok for an unknown email and changes nothing', async () => {
+    const requested = async () => {
+      const { count } = await adminClient
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .not('password_reset_requested_at', 'is', null);
+      return count;
+    };
+    const before = await requested();
+    ok(
+      await createAnonClient().rpc('request_password_reset', { p_email: `nobody-${Date.now()}@example.com` }),
+    );
+    expect(await requested()).toBe(before);
   });
 });

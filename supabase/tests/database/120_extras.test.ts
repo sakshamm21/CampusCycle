@@ -1,41 +1,72 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { createAnonClient, createAuthenticatedClient, type SupabaseClient } from './helpers';
+import { adminClient, createAnonClient, demoSession, IITK_ID, must, ok, raised, resetDemo } from './helpers';
 
 describe('120: Extras and Public RPCs', () => {
-  let demoAdminClient: SupabaseClient;
-  let demoSuperClient: SupabaseClient;
-
   beforeAll(async () => {
-    demoAdminClient = await createAuthenticatedClient('demo-admin@example.com');
-    demoSuperClient = await createAuthenticatedClient('demo-super@example.com');
+    ok(await resetDemo());
   });
 
-  it('demo_qr_samples is accessible to anon and returns available demo bikes with valid payload format', async () => {
-    const anon = createAnonClient();
-    const { data, error } = await anon.rpc('demo_qr_samples');
-    expect(error).toBeNull();
-    expect(Array.isArray(data)).toBe(true);
-    expect(data!.length).toBeGreaterThan(0);
+  it('gives anon signed QR samples of exactly the available demo bikes', async () => {
+    const samples: { code: string; stand_name: string; payload: string }[] = ok(
+      await createAnonClient().rpc('demo_qr_samples'),
+    );
+    const available = must(
+      await adminClient
+        .from('bikes')
+        .select('short_code')
+        .eq('is_demo', true)
+        .eq('status', 'available')
+        .order('short_code'),
+      'available demo bikes',
+    ).map((b) => b.short_code);
 
-    const first = data![0];
-    expect(first.code).toMatch(/^[A-Z]{1,3}-[0-9]{3,4}$/);
-    expect(first.payload).toMatch(/^campuscycle:\/\/b\/[A-Z]{1,3}-[0-9]{3,4}\?s=[A-Za-z0-9_-]{22}$/);
+    // 30 seeded demo bikes, one of them (K-023) in maintenance
+    expect(available).toHaveLength(29);
+    expect(samples.map((s) => s.code).sort()).toEqual(available);
+    expect(samples.map((s) => s.code)).not.toContain('K-023');
+    for (const sample of samples) {
+      expect(sample.payload).toMatch(new RegExp(`^campuscycle://b/${sample.code}\\?s=[A-Za-z0-9_-]{22}$`));
+    }
+
+    // a sample really is a working QR for a demo account
+    const demoAdmin = await demoSession('admin');
+    const scan = ok(await demoAdmin.client.rpc('admin_scan_bike', { p_payload: samples[0].payload }));
+    expect(scan).toMatchObject({
+      signed: true,
+      bike: { code: samples[0].code, stand_name: samples[0].stand_name },
+    });
   });
 
-  it('colleges_overview refused for college admin with CC_FORBIDDEN', async () => {
-    const { error } = await demoAdminClient.rpc('colleges_overview');
-    expect(error?.message).toContain('CC_FORBIDDEN');
+  it('refuses the colleges overview to anyone but a super admin', async () => {
+    for (const role of ['admin', 'rider'] as const) {
+      const session = await demoSession(role);
+      expect(raised(await session.client.rpc('colleges_overview')), role).toBe('CC_FORBIDDEN');
+    }
+    expect(raised(await createAnonClient().rpc('colleges_overview'))).toBe('CC_FORBIDDEN');
   });
 
-  it('colleges_overview returns one row per college for super admin', async () => {
-    const { data, error } = await demoSuperClient.rpc('colleges_overview');
-    expect(error).toBeNull();
-    expect(Array.isArray(data)).toBe(true);
-    expect(data!.length).toBeGreaterThanOrEqual(1);
+  it('gives a super admin one overview row per college', async () => {
+    const demoSuper = await demoSession('super');
+    const rows: {
+      id: string;
+      short_code: string;
+      stands: number;
+      bikes: number;
+      riders: number;
+      pending: number;
+      admins: number;
+    }[] = ok(await demoSuper.client.rpc('colleges_overview'));
+    const colleges = must(await adminClient.from('colleges').select('id'), 'colleges');
 
-    const iitk = data!.find((c: { short_code: string }) => c.short_code === 'IITK');
-    expect(iitk).toBeDefined();
-    expect(iitk.stands).toBeGreaterThan(0);
-    expect(iitk.bikes).toBeGreaterThan(0);
+    expect(rows.map((r) => r.id).sort()).toEqual(colleges.map((c) => c.id).sort());
+    // the demo super admin counts demo rows only: 21 approved demo riders, 4 applicants, 1 demo admin
+    expect(rows.find((r) => r.id === IITK_ID)).toMatchObject({
+      short_code: 'IITK',
+      stands: 10,
+      bikes: 30,
+      riders: 21,
+      pending: 4,
+      admins: 1,
+    });
   });
 });
