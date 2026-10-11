@@ -1,0 +1,23 @@
+#!/bin/sh
+# CampusCycle commit message validation hook
+# Rejects any message containing a Co-Authored-By: line, a Claude trailer or a session link
+
+msg_file="$1"
+content=$(cat "$msg_file")
+
+if echo "$content" | grep -iq "Co-Authored-By:"; then
+  echo "Error: Co-Authored-By trailers are not permitted." >&2
+  exit 1
+fi
+
+if echo "$content" | grep -iq "Claude"; then
+  echo "Error: Claude trailers are not permitted." >&2
+  exit 1
+fi
+
+if echo "$content" | grep -iqE "session|conversation://"; then
+  echo "Error: Session links are not permitted." >&2
+  exit 1
+fi
+
+exit 0
