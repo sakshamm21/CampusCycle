@@ -1,0 +1,130 @@
+export const en = {
+  common: {
+    offline: "You're offline. Changes will sync when you're back online.",
+    loading: 'Loading...',
+    cancel: 'Cancel',
+    confirm: 'Confirm',
+    save: 'Save',
+    back: 'Back',
+    done: 'Done',
+    close: 'Close',
+    retry: 'Try again',
+    edit: 'Edit',
+    delete: 'Delete',
+    search: 'Search',
+    all: 'All',
+    none: 'None',
+    yes: 'Yes',
+    no: 'No',
+    demo_banner: 'Demo mode · Skipping GPS checks · Resets nightly at 4:00 AM IST',
+    super_admin: 'Super Admin',
+    college_admin: 'College Admin',
+    rider: 'Rider',
+  },
+  errors: {
+    CC_NOT_SIGNED_IN: 'Please sign in again.',
+    CC_NOT_APPROVED: "Your pass isn't active yet. Your college admin needs to approve you first.",
+    CC_PASS_SUSPENDED: 'Your pass is suspended. Contact your college admin.',
+    CC_RATE_LIMITED: 'Too many tries. Wait a few minutes and try again.',
+    CC_BAD_CODE: "That code doesn't look right. Bike codes look like K-042.",
+    CC_BAD_QR: "This QR isn't a CampusCycle code. Type the code printed under it instead.",
+    CC_BIKE_NOT_FOUND: "We couldn't find bike {code} at your college.",
+    CC_PASS_HAS_BIKE: '{bike} is already on this pass. Return it first.',
+    CC_BIKE_IN_MAINTENANCE: '{code} is under maintenance. Pick another bike.',
+    CC_BIKE_NOT_AVAILABLE: "{code} isn't available right now. Pick another bike.",
+    CC_BIKE_NOT_AT_THIS_STAND:
+      'Our records put {code} at {bike_stand}, not {here}. Pick a bike parked here, or report it.',
+    CC_MOCK_LOCATION: 'Your phone is using a fake location. Turn it off to borrow or return.',
+    CC_NO_LOCATION: "We need your location to check you're at a stand.",
+    CC_POOR_ACCURACY: 'Your GPS is too rough right now ({accuracy_m} m). Step into open sky and try again.',
+    CC_NOT_AT_STAND: "You're not inside a stand. Nearest is {nearest_stand}, {distance} away.",
+    CC_NO_BIKE_ON_PASS: "There's no bike on your pass.",
+    CC_WRONG_BIKE: "That's {scanned}. Your pass holds {pass_bike}, so scan that bike.",
+    CC_BAD_PHOTO_PATH: "The photo didn't upload properly. Take it again.",
+    CC_RIDE_NOT_FOUND: "We couldn't find that ride.",
+    CC_RIDE_NOT_ACTIVE: 'That ride has already ended.',
+    CC_INVALID_INPUT: 'Some details are missing or too short.',
+    CC_COLLEGE_NOT_FOUND: "That college isn't available.",
+    CC_NOT_EDITABLE: "Your details can't be changed now. Ask your college admin.",
+    CC_FORBIDDEN: "You don't have access to this.",
+    CC_STAND_NOT_FOUND: "That stand doesn't exist.",
+    CC_USER_NOT_FOUND: "That person doesn't exist.",
+    CC_NOT_PENDING: 'This application was already handled.',
+    CC_REASON_REQUIRED: 'Add a short reason (at least 3 characters).',
+    CC_TOO_MANY: 'Too many at once. Select fewer and try again.',
+    CC_OWNER_PROTECTED: "The owner account can't be changed.",
+    CC_DEMO_PROTECTED: 'Demo logins are protected so they always work.',
+    CC_DEMO_FORBIDDEN: 'Demo accounts can only change demo data.',
+    CC_DEMO_READONLY: 'This is read-only in the demo.',
+    CC_NOT_SUSPENDED: "This rider isn't suspended.",
+    CC_COLLEGE_REQUIRED: 'Pick a college for this admin.',
+    CC_STAND_REQUIRED: 'Move the bike to a stand first.',
+    CC_ISSUE_NOT_FOUND: "That report doesn't exist.",
+    CC_NOT_FOUND: 'Not found.',
+    CC_PASS_QR_EXPIRED: 'This pass QR has expired. Ask the rider to show it again.',
+    CC_DUPLICATE: 'That short code or bike prefix is already used.',
+    CC_CAP_TOO_HIGH: "The monthly cap can't be more than US$5.",
+    CC_INTEGRITY_BIKE_PASS: 'Something went wrong and nothing was changed. Try again.',
+    CC_NETWORK: "You're offline. Check your connection and try again.",
+    CC_UNKNOWN: 'Something went wrong. Try again.',
+    CC_AUTH_INVALID: 'Wrong email or password.',
+    CC_EMAIL_TAKEN: 'An account with this email already exists. Sign in instead.',
+    CC_WEAK_PASSWORD: 'Use at least 8 characters.',
+    CC_NOT_ADMIN: 'This site is for college admins. Riders use the CampusCycle app.',
+    CC_CAMERA_DENIED: 'Camera access is off. Turn it on in Settings, or type the code.',
+    CC_LOCATION_DENIED: 'Location access is off. Turn it on in Settings to borrow or return.',
+    CC_LOCATION_TIMEOUT: "We couldn't get your location. Step outside and try again.",
+    CC_UPLOAD_FAILED: "The photo will upload when you're back online.",
+    CC_AI_UNAVAILABLE: "TORQ isn't available right now. Everything else still works.",
+    CC_AI_DAILY_LIMIT: "You've used today's TORQ steps. Come back tomorrow.",
+    CC_AI_DEMO_POOL_EMPTY:
+      "The demo's TORQ pool is used up for today. It refills at 4:00 AM IST. Everything else still works.",
+    CC_AI_GUARDRAIL: "TORQ can't help with that.",
+    CC_AI_MESSAGE_TOO_LONG: 'Keep it under 2,000 characters.',
+    CC_AI_FEATURE_OFF: 'Your college has switched this TORQ feature off.',
+    CC_ACTION_EXPIRED: 'This confirm card expired. Ask TORQ again.',
+    CC_ACTION_NOT_FOUND: 'This action is no longer available.',
+  },
+  notif: {
+    approved_title: 'Pass ready',
+    approved_body: 'Your Rider Pass is active. Tap to open CampusCycle.',
+    rejected_title: 'Application update',
+    rejected_body: 'Your college admin reviewed your application.',
+    reminder_title: 'Ride reminder',
+    reminder_body: '15 minutes left before your ride is overdue.',
+    overdue_title: 'Ride overdue',
+    overdue_body: 'Please return your bike at any stand to avoid strikes.',
+    suspended_title: 'Pass paused',
+    suspended_body: 'Your pass reached the strike limit and is paused.',
+    reinstated_title: 'Pass reinstated',
+    reinstated_body: 'Your college admin reinstated your pass.',
+    issue_resolved_title: 'Issue resolved',
+    issue_resolved_body: 'The issue you reported has been resolved.',
+  },
+} as const;
+
+export type TranslationKey = string;
+
+export function t(path: string, vars?: Record<string, string | number>): string {
+  const parts = path.split('.');
+  let current: unknown = en;
+  for (const part of parts) {
+    if (current && typeof current === 'object' && part in current) {
+      current = (current as Record<string, unknown>)[part];
+    } else {
+      return path;
+    }
+  }
+
+  if (typeof current !== 'string') {
+    return path;
+  }
+
+  let result = current;
+  if (vars) {
+    for (const [key, value] of Object.entries(vars)) {
+      result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), String(value));
+    }
+  }
+  return result;
+}
