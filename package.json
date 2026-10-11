@@ -1,0 +1,38 @@
+{
+  "name": "campuscycle",
+  "private": true,
+  "packageManager": "pnpm@10.18.0",
+  "scripts": {
+    "dev:admin": "pnpm --filter @campuscycle/admin dev",
+    "dev:mobile": "pnpm --filter @campuscycle/mobile start",
+    "db:push": "node scripts/db.mjs push",
+    "db:reset": "node scripts/db.mjs reset && pnpm seed:auth",
+    "db:test": "node scripts/db.mjs test",
+    "db:types": "node scripts/db.mjs types",
+    "seed:auth": "node scripts/seed-auth.mjs",
+    "fonts": "node scripts/fetch-fonts.mjs",
+    "tokens": "node scripts/gen-tokens.mjs",
+    "torq:sync": "node scripts/sync-torq.mjs",
+    "torq:check": "node scripts/sync-torq.mjs --check && node scripts/check-routes.mjs",
+    "functions:deploy": "pnpm torq:sync && node scripts/deploy-functions.mjs",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "pnpm -r test",
+    "evals": "pnpm --filter @campuscycle/evals eval",
+    "e2e:admin": "pnpm --filter @campuscycle/admin e2e",
+    "e2e:mobile": "maestro test e2e/mobile",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm torq:check"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.16.0",
+    "@types/node": "^22.10.2",
+    "eslint": "^9.16.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "prettier": "^3.4.2",
+    "supabase": "^2.1.1",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.0"
+  }
+}
