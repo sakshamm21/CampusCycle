@@ -1,5 +1,12 @@
 import { en } from './strings/en.ts';
-import { formatDistance } from './format.ts';
+
+function formatDistance(m: number | null): string {
+  if (m === null || m === undefined || isNaN(m)) return '';
+  if (m < 1000) {
+    return `${Math.round(m)} m`;
+  }
+  return `${(m / 1000).toFixed(1)} km`;
+}
 
 export type ErrorCode = keyof typeof en.errors;
 

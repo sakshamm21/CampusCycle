@@ -57,6 +57,28 @@ importers:
         specifier: ^3.0.0
         version: 3.2.7(@types/node@22.20.5)
 
+  packages/torq:
+    dependencies:
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+      zod-to-json-schema:
+        specifier: 3.23.5
+        version: 3.23.5(zod@3.23.8)
+    devDependencies:
+      '@supabase/supabase-js':
+        specifier: ^2.47.10
+        version: 2.117.3
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.5
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.7(@types/node@22.20.5)
+
 packages:
   '@ecies/ciphers@0.2.6':
     resolution:
@@ -1857,6 +1879,14 @@ packages:
       }
     engines: { node: '>=10' }
 
+  zod-to-json-schema@3.23.5:
+    resolution:
+      {
+        integrity: sha512-5wlSS0bXfF/BrL4jPAbz9da5hDlDptdEppYfe+x4eIJ7jioqKG9uUxOwPzqof09u/XeVdrgFu29lZi+8XNDJtA==,
+      }
+    peerDependencies:
+      zod: ^3.23.3
+
   zod@3.23.8:
     resolution:
       {
@@ -2855,5 +2885,9 @@ snapshots:
   word-wrap@1.2.5: {}
 
   yocto-queue@0.1.0: {}
+
+  zod-to-json-schema@3.23.5(zod@3.23.8):
+    dependencies:
+      zod: 3.23.8
 
   zod@3.23.8: {}
