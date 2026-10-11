@@ -16,8 +16,10 @@ if (!process.env.SUPABASE_URL) {
   }
 }
 
+const hasSupabase = Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY);
+
 describe('Smoke test: Rider API against hosted project', () => {
-  it('signs in as demo rider and calls getMyContext', async () => {
+  it.skipIf(!hasSupabase)('signs in as demo rider and calls getMyContext', async () => {
     const url = process.env.SUPABASE_URL;
     const anonKey = process.env.SUPABASE_ANON_KEY;
 
