@@ -21,8 +21,8 @@ if (fs.existsSync(envPath)) {
 
 const command = process.argv[2];
 
-if (!command || !['push', 'reset', 'types'].includes(command)) {
-  console.error('Usage: node scripts/db.mjs <push|reset|types>');
+if (!command || !['push', 'reset', 'types', 'test'].includes(command)) {
+  console.error('Usage: node scripts/db.mjs <push|reset|types|test>');
   process.exit(1);
 }
 
@@ -57,11 +57,14 @@ async function handleReset() {
   const functionsBaseUrl = `${supabaseUrl}/functions/v1`;
   const internalSecret = process.env.INTERNAL_SECRET;
 
-  const { error } = await supabase.from('app_config').upsert([
-    { key: 'owner_email', value: ownerEmail },
-    { key: 'functions_base_url', value: functionsBaseUrl },
-    { key: 'internal_secret', value: internalSecret ?? '' },
-  ]);
+  const { error } = await supabase
+    .schema('private')
+    .from('app_config')
+    .upsert([
+      { key: 'owner_email', value: ownerEmail },
+      { key: 'functions_base_url', value: functionsBaseUrl },
+      { key: 'internal_secret', value: internalSecret ?? '' },
+    ]);
 
   if (error) {
     console.warn(`[db] Notice updating app_config: ${error.message}`);
@@ -91,6 +94,11 @@ async function main() {
       );
       fs.writeFileSync(targetPath, typesOutput, 'utf8');
       console.warn(`[db] Generated ${targetPath}`);
+      break;
+    }
+    case 'test': {
+      console.warn('[db] Running database tests...');
+      run('pnpm exec vitest run supabase/tests/database --fileParallelism=false --testTimeout=30000');
       break;
     }
   }

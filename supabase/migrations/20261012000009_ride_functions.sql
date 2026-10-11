@@ -24,7 +24,7 @@ begin
     return private.err('CC_POOR_ACCURACY', jsonb_build_object('accuracy_m', round(coalesce(p_accuracy, -1))));
   end if;
 
-  v_pt := extensions.st_setsrid(extensions.st_makepoint(lng, lat), 4326)::extensions.geography;
+  v_pt := extensions.st_setsrid(extensions.st_makepoint(p_lng, p_lat), 4326)::extensions.geography;
 
   select s.id, s.name, extensions.st_distance(s.location, v_pt)
     into v_id, v_name, v_d

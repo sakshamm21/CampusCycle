@@ -46,15 +46,29 @@ const IITK_ID = '11111111-1111-4111-8111-111111111111';
 const DEMO_PASSWORD = 'ride-the-demo-2026';
 
 const SAMPLE_NAMES = [
-  'Arjun Mehta', 'Diya Patel', 'Vihaan Rao', 'Saanvi Nair', 'Aditya Kumar',
-  'Ananya Joshi', 'Reyansh Das', 'Myra Kapoor', 'Krish Malhotra', 'Aarohi Bose',
-  'Vivaan Reddy', 'Kiara Menon', 'Ayaan Chatterjee', 'Ira Shah', 'Dhruv Pillai',
-  'Tara Banerjee', 'Rudra Saxena', 'Anika Desai', 'Shaurya Kulkarni', 'Zoya Khan',
+  'Arjun Mehta',
+  'Diya Patel',
+  'Vihaan Rao',
+  'Saanvi Nair',
+  'Aditya Kumar',
+  'Ananya Joshi',
+  'Reyansh Das',
+  'Myra Kapoor',
+  'Krish Malhotra',
+  'Aarohi Bose',
+  'Vivaan Reddy',
+  'Kiara Menon',
+  'Ayaan Chatterjee',
+  'Ira Shah',
+  'Dhruv Pillai',
+  'Tara Banerjee',
+  'Rudra Saxena',
+  'Anika Desai',
+  'Shaurya Kulkarni',
+  'Zoya Khan',
 ];
 
-const APPLICANT_NAMES = [
-  'Ishaan Gupta', 'Meera Iyer', 'Kabir Singh', 'Rohan Verma',
-];
+const APPLICANT_NAMES = ['Ishaan Gupta', 'Meera Iyer', 'Kabir Singh', 'Rohan Verma'];
 
 function randomPassword() {
   return crypto.randomBytes(18).toString('base64url').slice(0, 24);
@@ -202,19 +216,14 @@ async function main() {
     if (fs.existsSync(idCardPath)) {
       const buffer = fs.readFileSync(idCardPath);
       const targetPath = `${user.id}/id-sample.png`;
-      const { error: uploadErr } = await supabase.storage
-        .from('id-cards')
-        .upload(targetPath, buffer, {
-          contentType: 'image/png',
-          upsert: true,
-        });
+      const { error: uploadErr } = await supabase.storage.from('id-cards').upload(targetPath, buffer, {
+        contentType: 'image/png',
+        upsert: true,
+      });
       if (uploadErr) {
         console.warn(`[seed-auth] Warning uploading ID card for ${item.email}:`, uploadErr.message);
       } else {
-        await supabase
-          .from('profiles')
-          .update({ id_photo_path: targetPath })
-          .eq('id', user.id);
+        await supabase.from('profiles').update({ id_photo_path: targetPath }).eq('id', user.id);
       }
     }
   }
