@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: 11 14 19;
+  --surface: 19 24 33;
+  --surface2: 26 32 43;
+  --raised: 31 38 51;
+  --border: 37 45 58;
+  --border-strong: 53 64 82;
+  --fg: 241 243 247;
+  --muted: 155 165 182;
+  --subtle: 106 116 135;
+  --primary: 255 210 63;
+  --on-primary: 22 19 10;
+  --ok: 63 224 181;
+  --warn: 255 176 32;
+  --bad: 255 84 112;
+}
+
+.day {
+  --bg: 237 240 244;
+  --surface: 255 255 255;
+  --surface2: 227 232 239;
+  --raised: 255 255 255;
+  --border: 213 220 229;
+  --border-strong: 185 195 209;
+  --fg: 13 17 25;
+  --muted: 85 96 114;
+  --subtle: 135 144 160;
+  --primary: 36 72 255;
+  --on-primary: 255 255 255;
+  --ok: 14 159 110;
+  --warn: 184 117 0;
+  --bad: 220 38 69;
+}

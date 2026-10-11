@@ -31,6 +31,7 @@
     "eslint": "^9.16.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "prettier": "^3.4.2",
+    "sharp": "^0.35.5",
     "supabase": "^2.1.1",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.18.0"

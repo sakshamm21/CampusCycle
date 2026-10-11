@@ -6,4 +6,3 @@ describe('torq types and exports', () => {
     expect(torq).toBeDefined();
   });
 });
-

@@ -8,8 +8,8 @@ export default tseslint.config(
       '**/node_modules/**',
       '**/database.types.ts',
       'supabase/functions/_shared/vendor/**',
-      '.next/**',
-      'dist/**',
+      '**/.next/**',
+      '**/dist/**',
       'apps/mobile/android/**',
       'apps/mobile/ios/**',
       'coverage/**',
@@ -38,6 +38,7 @@ export default tseslint.config(
         Buffer: 'readonly',
         __dirname: 'readonly',
         __filename: 'readonly',
+        fetch: 'readonly',
       },
     },
     rules: {
@@ -45,7 +46,13 @@ export default tseslint.config(
     },
   },
   {
-    files: ['**/*.cjs'],
+    files: [
+      '**/*.cjs',
+      '**/*.config.js',
+      '**/babel.config.js',
+      '**/metro.config.js',
+      '**/tailwind.config.js',
+    ],
     languageOptions: {
       globals: {
         module: 'readonly',
@@ -53,7 +60,17 @@ export default tseslint.config(
         exports: 'readonly',
         __dirname: 'readonly',
         __filename: 'readonly',
+        process: 'readonly',
       },
+    },
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
+  {
+    files: ['apps/mobile/**/*'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
     },
   },
 );
