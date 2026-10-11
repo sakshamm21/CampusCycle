@@ -10,6 +10,7 @@
     "db:test": "node scripts/db.mjs test",
     "db:types": "node scripts/db.mjs types",
     "seed:auth": "node scripts/seed-auth.mjs",
+    "seed:auth:prod": "node scripts/seed-auth.mjs --target prod",
     "fonts": "node scripts/fetch-fonts.mjs",
     "tokens": "node scripts/gen-tokens.mjs",
     "torq:sync": "node scripts/sync-torq.mjs",
