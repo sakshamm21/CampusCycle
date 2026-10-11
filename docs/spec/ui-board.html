@@ -1,0 +1,3313 @@
+<title>CampusCycle UI Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap"
+/>
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,400..600&display=swap"
+/>
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap"
+/>
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Martian+Mono:wght@400;500;700&display=swap"
+/>
+<style>
+  /* Layout: the page is itself the CampusCycle design: hero with live controls, the Rider Pass playground, six phone screens, the admin site and the system spec. */
+  @property --rx {
+    syntax: '<angle>';
+    inherits: true;
+    initial-value: 0deg;
+  }
+  @property --ry {
+    syntax: '<angle>';
+    inherits: true;
+    initial-value: 0deg;
+  }
+  @property --flip {
+    syntax: '<angle>';
+    inherits: true;
+    initial-value: 0deg;
+  }
+  @property --mx {
+    syntax: '<percentage>';
+    inherits: true;
+    initial-value: 30%;
+  }
+  @property --my {
+    syntax: '<percentage>';
+    inherits: true;
+    initial-value: 20%;
+  }
+
+  :root {
+    /* palette presets: primary in after-dark and in day */
+    --p-d: #ffd23f;
+    --pf-d: #16130a;
+    --p-l: #2448ff;
+    --pf-l: #ffffff;
+
+    /* after dark (default) */
+    --bg: #0b0e13;
+    --surface: #131821;
+    --surface-2: #1a202b;
+    --raised: #1f2633;
+    --border: #252d3a;
+    --border-strong: #354052;
+    --fg: #f1f3f7;
+    --muted: #9ba5b6;
+    --subtle: #6a7487;
+    --primary: var(--p-d);
+    --on-primary: var(--pf-d);
+    --ok: #3fe0b5;
+    --warn: #ffb020;
+    --bad: #ff5470;
+    --grain: 0.07;
+    --shadow: 0 18px 40px -16px rgb(0 0 0 / 0.6);
+
+    /* sticker colours, same in both themes */
+    --s-yellow: #ffd23f;
+    --s-blue: #4c74ff;
+    --s-coral: #ff6b5e;
+    --s-mint: #3fe0b5;
+
+    --f-display: 'Archivo', 'Arial Black', system-ui, sans-serif;
+    --f-accent: 'Fraunces', Georgia, 'Times New Roman', serif;
+    --f-body: 'Figtree', 'Segoe UI', system-ui, sans-serif;
+    --f-mono: 'Martian Mono', ui-monospace, Menlo, monospace;
+    --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    color-scheme: dark;
+  }
+  :root.pal-coral {
+    --p-d: #ff6b5e;
+    --pf-d: #1c0907;
+    --p-l: #e0402f;
+    --pf-l: #ffffff;
+  }
+  :root.pal-mint {
+    --p-d: #3fe0b5;
+    --pf-d: #04241a;
+    --p-l: #0b7f60;
+    --pf-l: #ffffff;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme='dark']):not(.force-dark) {
+      --bg: #edf0f4;
+      --surface: #ffffff;
+      --surface-2: #e3e8ef;
+      --raised: #ffffff;
+      --border: #d5dce5;
+      --border-strong: #b9c3d1;
+      --fg: #0d1119;
+      --muted: #556072;
+      --subtle: #8790a0;
+      --primary: var(--p-l);
+      --on-primary: var(--pf-l);
+      --ok: #0e9f6e;
+      --warn: #b87500;
+      --bad: #dc2645;
+      --grain: 0.045;
+      --shadow: 0 18px 40px -18px rgb(20 30 50 / 0.28);
+      color-scheme: light;
+    }
+  }
+  :root[data-theme='light']:not(.force-dark),
+  :root.force-day {
+    --bg: #edf0f4;
+    --surface: #ffffff;
+    --surface-2: #e3e8ef;
+    --raised: #ffffff;
+    --border: #d5dce5;
+    --border-strong: #b9c3d1;
+    --fg: #0d1119;
+    --muted: #556072;
+    --subtle: #8790a0;
+    --primary: var(--p-l);
+    --on-primary: var(--pf-l);
+    --ok: #0e9f6e;
+    --warn: #b87500;
+    --bad: #dc2645;
+    --grain: 0.045;
+    --shadow: 0 18px 40px -18px rgb(20 30 50 / 0.28);
+    color-scheme: light;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.55 var(--f-body);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: var(--grain);
+    background-image: var(--noise);
+  }
+  .glow {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .glow i {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(110px);
+  }
+  .glow i:nth-child(1) {
+    width: 34rem;
+    height: 34rem;
+    left: -12rem;
+    top: -14rem;
+    background: color-mix(in srgb, var(--primary) 14%, transparent);
+  }
+  .glow i:nth-child(2) {
+    width: 28rem;
+    height: 28rem;
+    right: -10rem;
+    top: 30%;
+    background: color-mix(in srgb, var(--s-blue) 12%, transparent);
+  }
+  .glow i:nth-child(3) {
+    width: 26rem;
+    height: 26rem;
+    left: 30%;
+    bottom: -12rem;
+    background: color-mix(in srgb, var(--s-coral) 9%, transparent);
+  }
+
+  em {
+    font-family: var(--f-accent);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--primary);
+    letter-spacing: -0.01em;
+  }
+  .kicker {
+    font: 500 10.5px/1.2 var(--f-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+  }
+  .wrap {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding-inline: 20px;
+  }
+
+  /* ---------- hero ---------- */
+  .hero {
+    padding-block: 40px 28px;
+    position: relative;
+  }
+  .live {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--surface) 70%, transparent);
+    border-radius: 999px;
+    padding: 7px 14px;
+  }
+  .live .kicker {
+    color: var(--fg);
+  }
+  .dot {
+    position: relative;
+    width: 8px;
+    height: 8px;
+    flex: none;
+  }
+  .dot::before,
+  .dot::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--ok);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .dot::before {
+      animation: ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+    @keyframes ping {
+      75%,
+      100% {
+        transform: scale(2.4);
+        opacity: 0;
+      }
+    }
+  }
+  .hero h1 {
+    font-family: var(--f-display);
+    font-weight: 900;
+    font-size: clamp(3rem, 10vw, 8.4rem);
+    line-height: 0.84;
+    letter-spacing: -0.055em;
+    margin: 22px 0 0;
+    text-transform: lowercase;
+    text-wrap: balance;
+  }
+  .hero h1 em {
+    font-size: 1.04em;
+    letter-spacing: -0.03em;
+  }
+  .hero-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 28px;
+    align-items: end;
+    margin-top: 28px;
+  }
+  @media (max-width: 820px) {
+    .hero-row {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .hero p.lede {
+    margin: 0;
+    max-width: 58ch;
+    color: var(--muted);
+    font-size: 17px;
+  }
+  .hero p.lede b {
+    color: var(--fg);
+    font-weight: 600;
+  }
+  .sticker {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    padding: 7px 14px;
+    font: 800 14px/1 var(--f-display);
+    color: #0b0e13;
+    box-shadow: 0 14px 30px -10px rgb(0 0 0 / 0.55);
+    white-space: nowrap;
+  }
+  .hero .stk-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 26px;
+  }
+
+  /* controls */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    align-items: center;
+  }
+  .seg {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 26px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .seg button {
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font: 600 13px/1 var(--f-body);
+    padding: 9px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition:
+      background-color 0.2s,
+      color 0.2s,
+      transform 0.15s;
+  }
+  .seg button:active {
+    transform: scale(0.96);
+  }
+  .seg button[aria-pressed='true'] {
+    background: var(--fg);
+    color: var(--bg);
+  }
+  .seg button i {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  button:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  /* bike-lane marquee */
+  .lane {
+    margin: 34px 0 10px;
+    transform: rotate(-2.2deg);
+    margin-inline: -24px;
+    background: var(--primary);
+    color: var(--on-primary);
+    overflow: hidden;
+    padding: 14px 0;
+  }
+  .lane .track {
+    display: flex;
+    width: max-content;
+  }
+  .lane span {
+    font: 900 clamp(28px, 4.4vw, 46px)/1 var(--f-display);
+    text-transform: lowercase;
+    letter-spacing: -0.03em;
+    padding-inline: 22px;
+    white-space: nowrap;
+    display: inline-flex;
+    gap: 44px;
+    align-items: center;
+  }
+  .lane span b {
+    font-weight: 400;
+    font-family: var(--f-accent);
+    font-style: italic;
+  }
+  .lane2 {
+    transform: rotate(1.4deg);
+    margin-top: -8px;
+    background: var(--fg);
+    color: var(--bg);
+    padding: 10px 0;
+  }
+  .lane2 span {
+    font: 500 15px/1 var(--f-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    gap: 30px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .lane .track {
+      animation: run 32s linear infinite;
+    }
+    .lane2 .track {
+      animation-direction: reverse;
+      animation-duration: 38s;
+    }
+    @keyframes run {
+      to {
+        transform: translateX(-50%);
+      }
+    }
+  }
+
+  section.block {
+    padding-block: 56px 8px;
+  }
+  .sec-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 30px;
+    align-items: end;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .sec-head h2 {
+    font: 900 clamp(2.1rem, 5vw, 3.6rem)/0.92 var(--f-display);
+    letter-spacing: -0.045em;
+    margin: 10px 0 0;
+    text-transform: lowercase;
+  }
+  .sec-head p {
+    margin: 0;
+    color: var(--muted);
+    max-width: 46ch;
+  }
+
+  /* ================= RIDER PASS ================= */
+  .pass-wrap {
+    container-type: inline-size;
+    position: relative;
+    perspective: 1100px;
+    width: 100%;
+  }
+  .pass {
+    --c-fg: #f1f3f7;
+    --c-muted: rgb(241 243 247 / 0.6);
+    --c-line: rgb(255 255 255 / 0.13);
+    --c-acc: var(--p-d);
+    --c-on-acc: var(--pf-d);
+    position: relative;
+    aspect-ratio: 1.586;
+    transform-style: preserve-3d;
+    transform: rotateX(var(--rx)) rotateY(calc(var(--ry) + var(--flip)));
+    transition:
+      --flip 0.9s cubic-bezier(0.25, 1.3, 0.45, 1),
+      --rx 0.18s linear,
+      --ry 0.18s linear;
+    cursor: pointer;
+    color: var(--c-fg);
+  }
+  .pass.flipped {
+    --flip: 180deg;
+  }
+  :root.fin-chrome .pass {
+    --c-fg: #0b0e13;
+    --c-muted: rgb(11 14 19 / 0.58);
+    --c-line: rgb(11 14 19 / 0.16);
+    --c-acc: var(--p-l);
+    --c-on-acc: var(--pf-l);
+  }
+  :root.dir-sticker .pass {
+    --c-fg: var(--pf-d);
+    --c-muted: color-mix(in srgb, var(--pf-d) 62%, transparent);
+    --c-line: color-mix(in srgb, var(--pf-d) 18%, transparent);
+    --c-acc: var(--pf-d);
+    --c-on-acc: var(--p-d);
+  }
+  .face {
+    position: absolute;
+    inset: 0;
+    border-radius: 6cqw;
+    overflow: hidden;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    isolation: isolate;
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08) inset;
+  }
+  .face.back {
+    transform: rotateY(180deg);
+  }
+  .pass-wrap::after {
+    content: '';
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    bottom: -7%;
+    height: 16%;
+    border-radius: 50%;
+    background: rgb(0 0 0 / 0.55);
+    filter: blur(18px);
+    z-index: -2;
+  }
+  .pass-glow {
+    position: absolute;
+    inset: 6%;
+    border-radius: 8cqw;
+    background: var(--primary);
+    filter: blur(28px);
+    opacity: 0;
+    z-index: -1;
+    transition:
+      opacity 0.6s,
+      background-color 0.6s;
+  }
+
+  /* finishes */
+  .pf-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -3;
+    background:
+      radial-gradient(120% 90% at 0% 0%, rgb(255 255 255 / 0.11), transparent 55%),
+      repeating-linear-gradient(100deg, rgb(255 255 255 / 0.03) 0 1px, transparent 1px 4px),
+      linear-gradient(140deg, #1e232c, #0e1116 55%, #1a1f28);
+  }
+  :root.fin-chrome .pf-bg {
+    background:
+      radial-gradient(120% 90% at 0% 0%, rgb(255 255 255 / 0.7), transparent 50%),
+      repeating-linear-gradient(100deg, rgb(0 0 0 / 0.045) 0 1px, transparent 1px 4px),
+      linear-gradient(120deg, #dde2e9 0%, #9aa3b1 28%, #f4f6f9 48%, #8d97a6 70%, #d3d9e1 100%);
+  }
+  :root.fin-holo .pf-bg {
+    background:
+      radial-gradient(120% 90% at 0% 0%, rgb(255 255 255 / 0.1), transparent 55%),
+      linear-gradient(140deg, #1d1f30, #0d0f17 55%, #1e1b2d);
+  }
+  :root.dir-sticker .pf-bg {
+    background: radial-gradient(120% 90% at 0% 0%, rgb(255 255 255 / 0.28), transparent 55%), var(--p-d);
+  }
+  .pf-holo {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    display: none;
+    pointer-events: none;
+  }
+  :root.fin-holo .pf-holo {
+    display: block;
+    background: linear-gradient(
+      115deg,
+      transparent 12%,
+      #ff6b5e 26%,
+      #ffd23f 37%,
+      #3fe0b5 49%,
+      #4c74ff 61%,
+      #b06bff 72%,
+      transparent 86%
+    );
+    background-size: 300% 300%;
+    background-position: var(--mx) var(--my);
+    mix-blend-mode: color-dodge;
+    opacity: 0.42;
+  }
+  :root.fin-chrome .pf-holo {
+    display: block;
+    background: linear-gradient(120deg, transparent 25%, rgb(255 255 255 / 0.75) 46%, transparent 62%);
+    background-size: 260% 260%;
+    background-position: var(--mx) var(--my);
+    mix-blend-mode: soft-light;
+  }
+  :root.fin-holo.dir-sticker .pf-holo {
+    opacity: 0.5;
+    mix-blend-mode: soft-light;
+  }
+  .pf-shine {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 3;
+    mix-blend-mode: overlay;
+    background:
+      radial-gradient(circle at var(--mx) var(--my), rgb(255 255 255 / 0.38), transparent 42%),
+      linear-gradient(105deg, transparent 38%, rgb(255 255 255 / 0.16) 50%, transparent 62%);
+    background-size:
+      100% 100%,
+      260% 100%;
+    background-position:
+      0 0,
+      var(--mx) 0;
+  }
+  .pf-grain {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background-image: var(--noise);
+    opacity: 0.14;
+    mix-blend-mode: overlay;
+  }
+
+  /* front layout */
+  .pf-content {
+    position: absolute;
+    inset: 0;
+    padding: 6cqw 6.5cqw;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    gap: 2.4cqw;
+    transition:
+      filter 0.5s,
+      opacity 0.5s;
+  }
+  .pf-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .pf-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 2cqw;
+    font: 900 4.2cqw/1 var(--f-display);
+    letter-spacing: -0.04em;
+  }
+  .pf-brand i {
+    width: 6.2cqw;
+    height: 6.2cqw;
+    border-radius: 50%;
+    background: var(--c-acc);
+    color: var(--c-on-acc);
+    display: grid;
+    place-items: center;
+    font-style: normal;
+  }
+  .pf-brand i svg {
+    width: 72%;
+    height: 72%;
+  }
+  .pf-k {
+    font: 500 2.5cqw/1 var(--f-mono);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--c-muted);
+  }
+  .pf-mid {
+    display: flex;
+    align-items: center;
+    gap: 3cqw;
+    margin-top: 1.5cqw;
+  }
+  .pf-chip {
+    position: relative;
+    min-width: 15cqw;
+    height: 11cqw;
+    border-radius: 2.6cqw;
+    display: grid;
+    place-items: center;
+    border: 0.45cqw dashed var(--c-line);
+  }
+  .pf-chip::before {
+    content: 'dock';
+    font: 500 2.1cqw/1 var(--f-mono);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--c-muted);
+  }
+  .pf-chip b {
+    position: absolute;
+    inset: -0.45cqw;
+    border-radius: 2.6cqw;
+    display: none;
+    place-items: center;
+    padding-inline: 2.6cqw;
+    background: var(--c-acc);
+    color: var(--c-on-acc);
+    font: 700 3.6cqw/1 var(--f-mono);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    background-image: linear-gradient(
+      90deg,
+      transparent 31%,
+      color-mix(in srgb, var(--c-on-acc) 22%, transparent) 31% 33%,
+      transparent 33% 67%,
+      color-mix(in srgb, var(--c-on-acc) 22%, transparent) 67% 69%,
+      transparent 69%
+    );
+  }
+  .pf-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.6cqw;
+    border-radius: 999px;
+    padding: 1.6cqw 2.6cqw;
+    font: 500 2.5cqw/1 var(--f-mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: color-mix(in srgb, var(--c-fg) 9%, transparent);
+    color: var(--c-fg);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .pf-status::before {
+    content: '';
+    width: 1.7cqw;
+    height: 1.7cqw;
+    border-radius: 50%;
+    background: #3fe0b5;
+  }
+  .pf-name {
+    align-self: end;
+    font: 900 8.6cqw/0.86 var(--f-display);
+    letter-spacing: -0.055em;
+    text-transform: lowercase;
+  }
+  .pf-name em {
+    display: block;
+    font-size: 6cqw;
+    letter-spacing: -0.01em;
+    color: var(--c-acc);
+    margin-top: 1.2cqw;
+  }
+  .pf-bot,
+  .pf-stub {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2cqw;
+    font: 500 2.6cqw/1 var(--f-mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--c-muted);
+  }
+  .pf-bot b,
+  .pf-stub b {
+    color: var(--c-fg);
+    font-weight: 700;
+  }
+  .pf-stub {
+    display: none;
+  }
+  .pf-stickers {
+    display: none;
+  }
+
+  /* direction B: ticket */
+  :root.dir-ticket .face.front {
+    -webkit-mask:
+      radial-gradient(circle at 0 79%, transparent 3.6cqw, #000 calc(3.6cqw + 0.5px)) left / 51% 100%
+        no-repeat,
+      radial-gradient(circle at 100% 79%, transparent 3.6cqw, #000 calc(3.6cqw + 0.5px)) right / 51% 100%
+        no-repeat;
+    mask:
+      radial-gradient(circle at 0 79%, transparent 3.6cqw, #000 calc(3.6cqw + 0.5px)) left / 51% 100%
+        no-repeat,
+      radial-gradient(circle at 100% 79%, transparent 3.6cqw, #000 calc(3.6cqw + 0.5px)) right / 51% 100%
+        no-repeat;
+  }
+  :root.dir-ticket .pf-content {
+    grid-template-rows: auto auto 1fr 13cqw;
+  }
+  :root.dir-ticket .pf-chip,
+  :root.dir-ticket .pf-bot {
+    display: none;
+  }
+  :root.dir-ticket .pf-stub {
+    display: flex;
+    position: relative;
+    padding-top: 3.4cqw;
+    align-self: stretch;
+  }
+  :root.dir-ticket .pf-stub::before {
+    content: '';
+    position: absolute;
+    left: -2cqw;
+    right: -2cqw;
+    top: 0;
+    border-top: 0.5cqw dashed var(--c-line);
+  }
+  .pf-stub .sb-bike {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.6cqw;
+  }
+  .pf-stub .sb-bike i {
+    font-style: normal;
+    border-radius: 1.6cqw;
+    padding: 1.2cqw 1.8cqw;
+    background: var(--c-acc);
+    color: var(--c-on-acc);
+    font-weight: 700;
+    display: none;
+  }
+
+  /* direction C: sticker */
+  :root.dir-sticker .pf-stickers {
+    display: block;
+    position: absolute;
+    right: 5cqw;
+    top: 15cqw;
+    width: 42cqw;
+    height: 30cqw;
+    pointer-events: none;
+  }
+  .pf-stickers span {
+    position: absolute;
+    border-radius: 999px;
+    padding: 1.8cqw 2.8cqw;
+    font: 800 3cqw/1 var(--f-display);
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    box-shadow: 0 2cqw 4cqw -2cqw rgb(0 0 0 / 0.45);
+  }
+  .pf-stickers span:nth-child(1) {
+    right: 0;
+    top: 0;
+    background: #0b0e13;
+    color: #fff;
+    rotate: 7deg;
+  }
+  .pf-stickers span:nth-child(2) {
+    right: 11cqw;
+    top: 10cqw;
+    background: #fff;
+    color: #0b0e13;
+    rotate: -6deg;
+  }
+  .pf-stickers span:nth-child(3) {
+    right: 1cqw;
+    top: 19cqw;
+    background: var(--s-blue);
+    color: #fff;
+    rotate: 4deg;
+  }
+  :root.dir-sticker .pf-name em {
+    color: var(--c-fg);
+  }
+  :root.dir-sticker
+    .pass:is([data-state='returned'], [data-state='pending'], [data-state='suspended'])
+    .pf-stickers {
+    opacity: 0;
+  }
+
+  /* overlays: stamps */
+  .pf-stamp,
+  .pf-wait,
+  .pf-sus {
+    position: absolute;
+    z-index: 4;
+    display: none;
+    font: 700 3.1cqw/1.15 var(--f-mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-radius: 2.6cqw;
+    padding: 2.4cqw 3.2cqw;
+    text-align: center;
+  }
+  .pf-stamp {
+    right: 6cqw;
+    top: 18cqw;
+    background: #3fe0b5;
+    color: #04150f;
+    rotate: -10deg;
+    box-shadow: 0 2cqw 6cqw -2cqw rgb(0 0 0 / 0.5);
+  }
+  .pf-wait {
+    right: 6cqw;
+    top: 31cqw;
+    border: 0.6cqw dashed var(--c-fg);
+    color: var(--c-fg);
+    rotate: -9deg;
+  }
+  .pf-sus {
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    background: #ff5470;
+    color: #fff;
+  }
+  .pf-sweep {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(100deg, transparent 38%, rgb(255 255 255 / 0.75) 50%, transparent 62%);
+    background-size: 260% 100%;
+  }
+
+  /* states */
+  .pass[data-state='pending'] .pf-content {
+    filter: grayscale(1);
+    opacity: 0.42;
+  }
+  .pass[data-state='pending'] .pf-bg,
+  .pass[data-state='pending'] .pf-holo {
+    filter: grayscale(1) brightness(0.8);
+  }
+  .pass[data-state='pending'] .pf-wait {
+    display: block;
+  }
+  .pass[data-state='pending'] .pf-status::before {
+    background: var(--c-muted);
+  }
+  .pass[data-state='riding'] .pf-chip b,
+  .pass[data-state='overdue'] .pf-chip b {
+    display: grid;
+  }
+  .pass[data-state='riding'] .pf-stub .sb-bike i,
+  .pass[data-state='overdue'] .pf-stub .sb-bike i {
+    display: inline-block;
+  }
+  .pass[data-state='riding'] .pf-status {
+    background: var(--c-acc);
+    color: var(--c-on-acc);
+  }
+  .pass[data-state='riding'] .pf-status::before {
+    background: currentColor;
+  }
+  .pass[data-state='overdue'] .pf-chip b,
+  .pass[data-state='overdue'] .pf-stub .sb-bike i,
+  .pass[data-state='overdue'] .pf-status {
+    background: #ffb020;
+    color: #1f1300;
+  }
+  .pass[data-state='overdue'] .pf-status::before {
+    background: currentColor;
+  }
+  .pass[data-state='returned'] .pf-stamp {
+    display: block;
+  }
+  .pass[data-state='suspended'] .pf-content {
+    filter: blur(1.2cqw);
+    opacity: 0.55;
+  }
+  .pass[data-state='suspended'] .pf-sus {
+    display: block;
+  }
+  .pass[data-state='suspended'] .pf-status::before {
+    background: #ff5470;
+  }
+  .pass-wrap:has(.pass[data-state='riding']) .pass-glow {
+    opacity: 0.55;
+  }
+  .pass-wrap:has(.pass[data-state='overdue']) .pass-glow {
+    opacity: 0.6;
+    background: var(--warn);
+  }
+
+  /* back face */
+  .pb {
+    position: absolute;
+    inset: 0;
+    padding: 5.5cqw 6.5cqw;
+    display: grid;
+    grid-template-columns: 38cqw minmax(0, 1fr);
+    grid-template-rows: auto 1fr auto;
+    gap: 2.6cqw 5cqw;
+  }
+  .pb-head {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .pb-qr {
+    background: #fff;
+    border-radius: 3cqw;
+    padding: 2cqw;
+    align-self: start;
+    aspect-ratio: 1;
+  }
+  .pb-qr svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .pb-side {
+    display: grid;
+    align-content: start;
+    gap: 2.6cqw;
+  }
+  .pb-ring {
+    display: flex;
+    align-items: center;
+    gap: 2.4cqw;
+    font: 500 2.6cqw/1.2 var(--f-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--c-muted);
+  }
+  .pb-ring svg {
+    width: 9cqw;
+    height: 9cqw;
+    transform: rotate(-90deg);
+    flex: none;
+  }
+  .pb-ring circle {
+    fill: none;
+    stroke-width: 3.2;
+  }
+  .pb-ring .bgc {
+    stroke: var(--c-line);
+  }
+  .pb-ring .fgc {
+    stroke: var(--c-acc);
+    stroke-linecap: round;
+    stroke-dasharray: 88;
+  }
+  .pb-note {
+    font: 500 3.1cqw/1.35 var(--f-body);
+    color: var(--c-fg);
+    margin: 0;
+  }
+  .pb-stats {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2cqw;
+    border-top: 0.3cqw solid var(--c-line);
+    padding-top: 2.6cqw;
+  }
+  .pb-stats div {
+    display: grid;
+    gap: 1cqw;
+  }
+  .pb-stats strong {
+    font: 900 5.4cqw/1 var(--f-display);
+    letter-spacing: -0.04em;
+  }
+  .pb-stats span {
+    font: 500 2.1cqw/1 var(--f-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--c-muted);
+  }
+
+  /* motion */
+  @media (prefers-reduced-motion: no-preference) {
+    .pass-wrap.idle .pass {
+      animation: sway 7s ease-in-out infinite;
+    }
+    @keyframes sway {
+      0%,
+      100% {
+        --ry: -8deg;
+        --rx: 3deg;
+        --mx: 22%;
+      }
+      50% {
+        --ry: 8deg;
+        --rx: -2deg;
+        --mx: 78%;
+      }
+    }
+    .pass-wrap .pass.thunk {
+      animation: thunk 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+    }
+    @keyframes thunk {
+      0% {
+        translate: 0 0;
+      }
+      25% {
+        translate: 0 2.4cqw;
+        scale: 0.985;
+      }
+      60% {
+        translate: 0 -0.8cqw;
+      }
+      100% {
+        translate: 0 0;
+        scale: 1;
+      }
+    }
+    .pass.docking .pf-chip b,
+    .pass.docking .pf-stub .sb-bike i {
+      animation: dock 0.8s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+    }
+    @keyframes dock {
+      0% {
+        transform: translateY(-260%) scale(1.8) rotate(-8deg);
+        opacity: 0;
+      }
+      55% {
+        transform: translateY(8%) scale(0.94);
+        opacity: 1;
+      }
+      75% {
+        transform: translateY(-4%) scale(1.02);
+      }
+      100% {
+        transform: none;
+      }
+    }
+    .pass.minting .pf-content {
+      animation: reveal 1.3s cubic-bezier(0.6, 0, 0.2, 1) both;
+    }
+    .pass.minting .pf-sweep {
+      animation: sweep 1.3s cubic-bezier(0.6, 0, 0.2, 1) both;
+    }
+    @keyframes reveal {
+      from {
+        clip-path: inset(0 100% 0 0);
+      }
+      to {
+        clip-path: inset(0 0 0 0);
+      }
+    }
+    @keyframes sweep {
+      0% {
+        opacity: 1;
+        background-position: 140% 0;
+      }
+      85% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+        background-position: -40% 0;
+      }
+    }
+    .pass[data-state='returned'] .pf-stamp {
+      animation: stamp 0.55s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+    }
+    @keyframes stamp {
+      from {
+        scale: 2.4;
+        opacity: 0;
+        rotate: 4deg;
+      }
+      to {
+        scale: 1;
+        opacity: 1;
+        rotate: -10deg;
+      }
+    }
+    .pass-wrap:has(.pass[data-state='riding']) .pass-glow,
+    .pass-wrap:has(.pass[data-state='overdue']) .pass-glow {
+      animation: breathe 2.4s ease-in-out infinite;
+    }
+    @keyframes breathe {
+      50% {
+        opacity: 0.25;
+      }
+    }
+    .pb-ring .fgc {
+      transition: stroke-dashoffset 1s linear;
+    }
+  }
+
+  /* ---------- pass playground ---------- */
+  .play {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: 36px;
+    align-items: center;
+  }
+  @media (max-width: 900px) {
+    .play {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .stage {
+    display: grid;
+    justify-items: center;
+    gap: 30px;
+    padding: 30px 12px 10px;
+  }
+  .stage .pass-wrap {
+    max-width: 440px;
+  }
+  .act {
+    width: 100%;
+    max-width: 440px;
+    min-height: 58px;
+    display: grid;
+  }
+  .slide {
+    position: relative;
+    height: 58px;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .slide .fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 58px;
+    background: color-mix(in srgb, var(--primary) 22%, transparent);
+    border-radius: 999px;
+  }
+  .slide .lbl {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font: 800 16px/1 var(--f-display);
+    letter-spacing: -0.02em;
+    color: var(--muted);
+    text-transform: lowercase;
+    padding-left: 40px;
+  }
+  .slide .thumb {
+    position: absolute;
+    left: 4px;
+    top: 4px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 0;
+    background: var(--primary);
+    color: var(--on-primary);
+    display: grid;
+    place-items: center;
+    cursor: grab;
+    box-shadow: 0 8px 22px -8px color-mix(in srgb, var(--primary) 70%, transparent);
+  }
+  .slide .thumb svg {
+    width: 22px;
+    height: 22px;
+  }
+  .slide.done .thumb {
+    transition: transform 0.25s;
+  }
+  .btnrow {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+  }
+  button.pill {
+    border: 0;
+    cursor: pointer;
+  }
+  .panelx {
+    display: grid;
+    gap: 22px;
+  }
+  .opt-list {
+    display: grid;
+    gap: 10px;
+  }
+  .opt {
+    text-align: left;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--fg);
+    border-radius: 22px;
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 4px 14px;
+    align-items: center;
+    cursor: pointer;
+    font: inherit;
+    transition:
+      border-color 0.2s,
+      transform 0.15s;
+  }
+  .opt:active {
+    transform: scale(0.985);
+  }
+  .opt[aria-pressed='true'] {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary) inset;
+  }
+  .opt .ltr {
+    grid-row: span 2;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font: 900 17px/1 var(--f-display);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+  }
+  .opt[aria-pressed='true'] .ltr {
+    background: var(--primary);
+    color: var(--on-primary);
+    border-color: transparent;
+  }
+  .opt b {
+    font: 800 17px/1.1 var(--f-display);
+    letter-spacing: -0.02em;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .opt span {
+    color: var(--muted);
+    font-size: 13.5px;
+    line-height: 1.4;
+  }
+  .rec {
+    font: 500 9.5px/1 var(--f-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 7px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--ok) 16%, transparent);
+    color: var(--ok);
+  }
+  .hint {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 6px 0 0;
+  }
+
+  /* ---------- phones ---------- */
+  .phones {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 40px 24px;
+    justify-items: center;
+  }
+  .ph {
+    width: 300px;
+    max-width: 100%;
+  }
+  .ph figcaption {
+    margin-top: 14px;
+    text-align: center;
+  }
+  .ph figcaption b {
+    display: block;
+    font: 800 16px/1.2 var(--f-display);
+    letter-spacing: -0.02em;
+  }
+  .ph figcaption span {
+    color: var(--muted);
+    font-size: 13px;
+  }
+  figure {
+    margin: 0;
+  }
+  .frame {
+    border-radius: 44px;
+    padding: 9px;
+    background: #05070a;
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.06) inset,
+      var(--shadow);
+  }
+  .scr {
+    position: relative;
+    border-radius: 36px;
+    overflow: hidden;
+    height: 600px;
+    background: var(--bg);
+    color: var(--fg);
+    display: flex;
+    flex-direction: column;
+    padding: 14px 16px 16px;
+    gap: 12px;
+    isolation: isolate;
+  }
+  .scr::before {
+    content: '';
+    position: absolute;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    left: -90px;
+    top: -110px;
+    background: color-mix(in srgb, var(--primary) 16%, transparent);
+    filter: blur(60px);
+    z-index: -1;
+  }
+  .scr .pass-wrap {
+    perspective: 900px;
+  }
+  .scr .pass {
+    cursor: default;
+  }
+  .sb {
+    display: flex;
+    justify-content: space-between;
+    font: 600 11px/1 var(--f-body);
+    color: var(--fg);
+    padding: 2px 6px 0;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .between {
+    justify-content: space-between;
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 999px;
+    font: 700 14px/1 var(--f-body);
+    padding: 13px 18px;
+    transition: transform 0.15s;
+  }
+  .pill:active {
+    transform: scale(0.96);
+  }
+  .pill.pri {
+    background: var(--primary);
+    color: var(--on-primary);
+    box-shadow: 0 10px 30px -10px color-mix(in srgb, var(--primary) 60%, transparent);
+  }
+  .pill.sec {
+    background: var(--surface-2);
+    color: var(--fg);
+    border: 1px solid var(--border);
+  }
+  .pill.sm {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 26px;
+  }
+  .big {
+    font-family: var(--f-display);
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    text-transform: lowercase;
+    line-height: 0.9;
+  }
+  .mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: var(--on-primary);
+    display: grid;
+    place-items: center;
+    flex: none;
+  }
+  .mark svg {
+    width: 70%;
+    height: 70%;
+  }
+  .word {
+    font: 900 17px/1 var(--f-display);
+    letter-spacing: -0.04em;
+  }
+  .tq {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    background: var(--fg);
+    color: var(--bg);
+    display: grid;
+    place-items: center;
+    flex: none;
+  }
+  .tq svg {
+    width: 62%;
+    height: 62%;
+  }
+  .tq.sm {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    color: var(--fg);
+    border: 1px solid var(--border);
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 5px 9px;
+    font: 500 10px/1 var(--f-mono);
+    letter-spacing: 0.06em;
+    background: var(--surface-2);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .chip.ok {
+    color: var(--ok);
+  }
+  .okpill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 999px;
+    padding: 6px 10px;
+    background: color-mix(in srgb, var(--ok) 14%, transparent);
+    color: var(--ok);
+    font: 500 10px/1 var(--f-mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .near {
+    padding: 14px;
+    display: grid;
+    gap: 10px;
+  }
+  .bar {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    overflow: hidden;
+  }
+  .bar i {
+    display: block;
+    height: 100%;
+    background: var(--ok);
+    border-radius: 999px;
+  }
+  .dock {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    padding: 6px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--raised) 85%, transparent);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+  .dock .ic {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: var(--muted);
+  }
+  .dock .ic.on {
+    background: var(--primary);
+    color: var(--on-primary);
+  }
+  .dock .ic svg {
+    width: 20px;
+    height: 20px;
+  }
+  .dock .scan {
+    height: 52px;
+    padding-inline: 18px 20px;
+    border-radius: 999px;
+    background: var(--fg);
+    color: var(--bg);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font: 800 15px/1 var(--f-display);
+    letter-spacing: -0.02em;
+    box-shadow: var(--shadow);
+    text-transform: lowercase;
+  }
+  .dock .scan svg {
+    width: 20px;
+    height: 20px;
+  }
+  .steps {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .steps li {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .steps li i {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    flex: none;
+    display: grid;
+    place-items: center;
+    font: 700 11px/1 var(--f-body);
+    font-style: normal;
+    background: color-mix(in srgb, var(--ok) 16%, transparent);
+    color: var(--ok);
+  }
+  .steps li.todo i {
+    background: var(--surface-2);
+    color: var(--subtle);
+    border: 1px solid var(--border);
+  }
+  .steps li b {
+    color: var(--fg);
+    font-weight: 600;
+  }
+  .bike-card {
+    padding: 14px;
+    display: grid;
+    gap: 12px;
+  }
+  .bike-id {
+    font: 900 52px/0.85 var(--f-display);
+    font-stretch: 75%;
+    letter-spacing: -0.02em;
+  }
+  .timer {
+    font: 900 64px/0.85 var(--f-display);
+    font-stretch: 75%;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .mini-slide {
+    height: 54px;
+  }
+  .mini-slide .thumb {
+    width: 46px;
+    height: 46px;
+    cursor: default;
+  }
+  .mini-slide .lbl {
+    font-size: 15px;
+  }
+  .bub {
+    max-width: 86%;
+    border-radius: 22px;
+    padding: 10px 13px;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .bub.me2 {
+    align-self: flex-end;
+    background: var(--fg);
+    color: var(--bg);
+    border-bottom-right-radius: 6px;
+  }
+  .bub.ai {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 6px;
+  }
+  .bub.ai b {
+    color: var(--fg);
+  }
+  .steps2 {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .steps2 .chip {
+    color: var(--ok);
+  }
+  .confirm {
+    border-radius: 22px;
+    padding: 12px;
+    background: var(--surface);
+    border: 1.5px dashed var(--primary);
+    display: grid;
+    gap: 8px;
+  }
+  .confirm .t {
+    font: 800 15px/1.2 var(--f-display);
+    letter-spacing: -0.02em;
+  }
+  .confirm ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .confirm ul li::before {
+    content: '→ ';
+    color: var(--primary);
+  }
+  .ask {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 999px;
+    padding: 6px 6px 6px 16px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--subtle);
+    font-size: 13px;
+  }
+  .ask .mic {
+    margin-left: auto;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: var(--on-primary);
+    display: grid;
+    place-items: center;
+  }
+  .ask .mic svg {
+    width: 18px;
+    height: 18px;
+  }
+  .receipt {
+    position: relative;
+    filter: drop-shadow(0 16px 24px rgb(0 0 0 / 0.25));
+  }
+  .r-top {
+    background: var(--primary);
+    color: var(--on-primary);
+    border-radius: 22px 22px 0 0;
+    padding: 12px 16px 12px;
+    mask-image:
+      radial-gradient(circle at 0 100%, transparent 10px, #000 10.5px),
+      radial-gradient(circle at 100% 100%, transparent 10px, #000 10.5px);
+    mask-composite: intersect;
+    -webkit-mask-composite: source-in;
+  }
+  .r-bot {
+    background: var(--surface);
+    border-radius: 0 0 22px 22px;
+    padding: 10px 16px 12px;
+    position: relative;
+    mask-image:
+      radial-gradient(circle at 0 0, transparent 10px, #000 10.5px),
+      radial-gradient(circle at 100% 0, transparent 10px, #000 10.5px);
+    mask-composite: intersect;
+    -webkit-mask-composite: source-in;
+  }
+  .r-bot::before {
+    content: '';
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    top: 0;
+    border-top: 2px dashed var(--border-strong);
+  }
+  .route {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font: 700 14px/1.2 var(--f-body);
+  }
+  .route i {
+    flex: 1;
+    height: 2px;
+    background: repeating-linear-gradient(90deg, currentColor 0 6px, transparent 6px 11px);
+    opacity: 0.55;
+  }
+  .route b {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+  }
+
+  /* ---------- admin ---------- */
+  .browser {
+    border-radius: 24px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    box-shadow: var(--shadow);
+  }
+  .bar-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .bar-top i {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+    flex: none;
+  }
+  .bar-top span {
+    margin-left: 12px;
+    font: 500 11px/1 var(--f-mono);
+    color: var(--subtle);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 7px 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .adm {
+    padding: 22px clamp(16px, 3vw, 32px) 30px;
+    display: grid;
+    gap: 22px;
+    position: relative;
+    isolation: isolate;
+  }
+  .adm::before {
+    content: '';
+    position: absolute;
+    width: 420px;
+    height: 420px;
+    right: -120px;
+    top: -160px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--primary) 12%, transparent);
+    filter: blur(90px);
+    z-index: -1;
+  }
+  .adm-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--surface) 80%, transparent);
+    border-radius: 999px;
+    padding: 11px 14px;
+    color: var(--subtle);
+    font-size: 13px;
+  }
+  .adm-search {
+    flex: 1;
+    max-width: 360px;
+    min-width: 180px;
+  }
+  .adm h3 {
+    font: 900 clamp(34px, 5vw, 56px)/0.9 var(--f-display);
+    letter-spacing: -0.05em;
+    margin: 10px 0 0;
+    text-transform: lowercase;
+  }
+  .statgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+  }
+  .stat {
+    padding: 18px;
+    border-radius: 26px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: grid;
+    gap: 14px;
+  }
+  .stat strong {
+    font: 900 56px/0.85 var(--f-display);
+    letter-spacing: -0.05em;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat small {
+    color: var(--subtle);
+    font-size: 12px;
+  }
+  .stat.acc {
+    background: var(--primary);
+    color: var(--on-primary);
+    border-color: transparent;
+  }
+  .stat.acc .kicker,
+  .stat.acc small {
+    color: color-mix(in srgb, var(--on-primary) 70%, transparent);
+  }
+  .two {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 760px) {
+    .two {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .panel {
+    padding: 20px;
+    border-radius: 26px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: grid;
+    gap: 14px;
+    align-content: start;
+    min-width: 0;
+  }
+  .panel h4 {
+    margin: 0;
+    font: 900 24px/1 var(--f-display);
+    letter-spacing: -0.04em;
+    text-transform: lowercase;
+  }
+  .digest {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 10px;
+  }
+  .digest li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+    font-size: 14px;
+  }
+  .digest li b {
+    font: 900 22px/1 var(--f-display);
+    letter-spacing: -0.04em;
+    min-width: 30px;
+  }
+  .move {
+    display: grid;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 20px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+  }
+  .lookup {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 16px;
+    align-items: center;
+  }
+  @media (max-width: 560px) {
+    .lookup {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .kv {
+    display: grid;
+    gap: 8px;
+    font-size: 14px;
+  }
+  .kv div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px dashed var(--border);
+    padding-bottom: 7px;
+  }
+  .kv div span:first-child {
+    color: var(--muted);
+  }
+  .standcheck {
+    display: grid;
+    gap: 8px;
+  }
+  .standcheck div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 16px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    font-size: 14px;
+  }
+
+  /* ---------- spec ---------- */
+  .spec {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .spec .panel {
+    gap: 16px;
+  }
+  .type-row {
+    display: grid;
+    gap: 4px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .type-row:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .swatch {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .swatch i {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    flex: none;
+  }
+  .swatch b {
+    display: block;
+    font-size: 14px;
+  }
+  .swatch small {
+    font: 500 10.5px/1.3 var(--f-mono);
+    color: var(--muted);
+  }
+  .lists {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .lists ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 10px;
+  }
+  .lists li {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
+    gap: 8px;
+    font-size: 14.5px;
+  }
+  .lists li::before {
+    content: '✦';
+    color: var(--primary);
+  }
+  .lists .new li::before {
+    content: '＋';
+    color: var(--ok);
+    font-weight: 700;
+  }
+  .picks {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .pick {
+    padding: 22px;
+    border-radius: 26px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+  .pick .n {
+    font: 900 64px/0.8 var(--f-display);
+    letter-spacing: -0.05em;
+    color: var(--primary);
+  }
+  .pick h4 {
+    margin: 0;
+    font: 900 26px/1 var(--f-display);
+    letter-spacing: -0.04em;
+    text-transform: lowercase;
+  }
+  .pick p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .pick .ans {
+    font: 500 12px/1.4 var(--f-mono);
+    letter-spacing: 0.06em;
+    color: var(--fg);
+  }
+  footer {
+    padding-block: 56px 72px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+</style>
+
+<div class="glow" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="live">
+      <span class="dot"></span><span class="kicker">CampusCycle · UI reference · the Rider Pass</span>
+    </div>
+    <h1>your pass. <em>your ride.</em></h1>
+    <div class="hero-row">
+      <div>
+        <p class="lede">
+          <b>Scan, ride, return.</b> Scan a bike at a stand and it lands on your Rider Pass. It stays there
+          until you return it at any stand. The pass is the hero of the app and moves like a premium credit
+          card, in CampusCycle's own look.
+        </p>
+        <div class="stk-row" aria-hidden="true">
+          <span class="sticker" style="background: var(--s-yellow); rotate: -6deg">scan to borrow ✓</span>
+          <span class="sticker" style="background: var(--s-blue); color: #fff; rotate: 4deg"
+            >your pass holds the bike 🪪</span
+          >
+          <span class="sticker" style="background: var(--s-coral); rotate: -3deg">return at any stand</span>
+          <span class="sticker" style="background: var(--s-mint); rotate: 5deg">ask TORQ in Hindi 💬</span>
+        </div>
+      </div>
+      <div class="controls">
+        <div>
+          <div class="kicker" style="margin-bottom: 8px">Accent</div>
+          <div class="seg" role="group" aria-label="Accent colour">
+            <button type="button" data-pal="signal" aria-pressed="true">
+              <i style="background: #ffd23f"></i>Signal
+            </button>
+            <button type="button" data-pal="coral" aria-pressed="false">
+              <i style="background: #ff6b5e"></i>Coral
+            </button>
+            <button type="button" data-pal="mint" aria-pressed="false">
+              <i style="background: #3fe0b5"></i>Mint
+            </button>
+          </div>
+        </div>
+        <div>
+          <div class="kicker" style="margin-bottom: 8px">Theme</div>
+          <div class="seg" role="group" aria-label="Theme">
+            <button type="button" data-mode="dark" aria-pressed="false">After dark</button>
+            <button type="button" data-mode="day" aria-pressed="false">Day</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+</div>
+
+<div aria-hidden="true" style="overflow: hidden; padding-block: 8px 18px">
+  <div class="lane">
+    <div class="track">
+      <span>scan <b>it</b> ✦ borrow ✦ ride <b>it</b> ✦ return anywhere ✦ ask torq ✦</span
+      ><span>scan <b>it</b> ✦ borrow ✦ ride <b>it</b> ✦ return anywhere ✦ ask torq ✦</span>
+    </div>
+  </div>
+  <div class="lane lane2">
+    <div class="track">
+      <span>hall 5 · library · LHC · shopping complex · hall 12 · main gate · new SAC ·</span
+      ><span>hall 5 · library · LHC · shopping complex · hall 12 · main gate · new SAC ·</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <!-- ============ PASS PLAYGROUND ============ -->
+  <section class="block" id="pass">
+    <div class="sec-head">
+      <div>
+        <div class="kicker">Rider Pass · the hero</div>
+        <h2>tilt it. flip it. <em>ride it.</em></h2>
+      </div>
+      <p>
+        Everything here is live. Move over the card to tilt it, tap it to flip to the pass QR, and slide to
+        borrow. Pick a finish or state on the right, and every screen below follows.
+      </p>
+    </div>
+    <div class="play">
+      <div class="stage">
+        <div class="pass-wrap idle" id="hero-wrap">
+          <div class="pass-glow"></div>
+          <div class="pass-slot" data-state="ready" data-hero="1"></div>
+        </div>
+        <div class="act" id="act"></div>
+      </div>
+      <div class="panelx">
+        <div>
+          <div class="kicker" style="margin-bottom: 10px">Pass style</div>
+          <div class="opt-list" role="group" aria-label="Pass style">
+            <button class="opt" type="button" data-dir="ink" aria-pressed="true">
+              <span class="ltr">A</span><b>Ink</b
+              ><span
+                >Quiet, premium card in the CRED spirit. The bike docks into a chip slot like a card
+                chip.</span
+              >
+            </button>
+          </div>
+        </div>
+        <div>
+          <div class="kicker" style="margin-bottom: 8px">Finish · levels up with rides</div>
+          <div class="seg" role="group" aria-label="Finish">
+            <button type="button" data-fin="graphite" aria-pressed="true">Graphite · 0+</button>
+            <button type="button" data-fin="chrome" aria-pressed="false">Chrome · 10+</button>
+            <button type="button" data-fin="holo" aria-pressed="false">Holo · 50+</button>
+          </div>
+        </div>
+        <div>
+          <div class="kicker" style="margin-bottom: 8px">Pass state</div>
+          <div class="seg" role="group" aria-label="Pass state" id="states">
+            <button type="button" data-st="pending" aria-pressed="false">Pending</button>
+            <button type="button" data-st="ready" aria-pressed="true">Ready</button>
+            <button type="button" data-st="riding" aria-pressed="false">Riding</button>
+            <button type="button" data-st="overdue" aria-pressed="false">Overdue</button>
+            <button type="button" data-st="returned" aria-pressed="false">Returned</button>
+            <button type="button" data-st="suspended" aria-pressed="false">Suspended</button>
+          </div>
+        </div>
+        <div class="row" style="flex-wrap: wrap; gap: 10px">
+          <button class="pill pri" type="button" id="story">▶ Play the story</button>
+          <button class="pill sec" type="button" id="flipbtn">Flip the pass</button>
+        </div>
+        <p class="hint">
+          The story runs approval, the mint reveal, slide to borrow, the bike docking in, riding, and the
+          Returned stamp. With reduce motion on, the states change without animation.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PHONES ============ -->
+  <section class="block">
+    <div class="sec-head">
+      <div>
+        <div class="kicker">Rider app · 6 key screens</div>
+        <h2>the app, <em>around the pass.</em></h2>
+      </div>
+      <p>The pass is on every screen that matters. Change the theme or finish above and these follow.</p>
+    </div>
+    <div class="phones">
+      <!-- 1 pending -->
+      <figure class="ph">
+        <div class="frame">
+          <div class="scr">
+            <div class="sb"><span>9:41</span><span>5G ▮▮▮</span></div>
+            <div class="kicker">IIT Kanpur · applied 9:12</div>
+            <h3 class="big" style="font-size: 42px; margin: 0">hold tight, <em>aanya.</em></h3>
+            <div class="pass-wrap"><div class="pass-slot" data-state="pending"></div></div>
+            <ul class="steps" style="margin-top: 6px">
+              <li>
+                <i>✓</i><span><b>Applied</b> with roll number 230421</span>
+              </li>
+              <li>
+                <i>✓</i><span><b>ID card matches</b>, checked by TORQ</span>
+              </li>
+              <li class="todo">
+                <i>3</i><span><b>Admin review</b>, usually within a day</span>
+              </li>
+            </ul>
+            <p style="margin: 0; color: var(--muted); font-size: 13px">
+              Your pass goes live the moment you're approved. We'll ping you.
+            </p>
+            <div style="margin-top: auto; display: grid; gap: 8px">
+              <span class="pill sec">Edit details</span>
+            </div>
+          </div>
+        </div>
+        <figcaption><b>Pending</b><span>Greyed pass with the approval stamp</span></figcaption>
+      </figure>
+
+      <!-- 2 home -->
+      <figure class="ph">
+        <div class="frame">
+          <div class="scr">
+            <div class="sb"><span>9:41</span><span>5G ▮▮▮</span></div>
+            <div class="row between">
+              <div>
+                <div class="kicker">IIT Kanpur</div>
+                <div style="font: 900 24px/1 var(--f-display); letter-spacing: -0.05em">
+                  hey aanya <em>👋</em>
+                </div>
+              </div>
+              <span class="tq sm" title="TORQ"
+                ><svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  stroke-linecap="round"
+                >
+                  <path d="M19.5 9.2A8 8 0 1 0 20 13" />
+                  <path d="m20.6 5.4-.9 4.1-4-.9" />
+                  <circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none" /></svg
+              ></span>
+            </div>
+            <div class="pass-wrap idle mini-tilt">
+              <div class="pass-glow"></div>
+              <div class="pass-slot" data-state="ready"></div>
+            </div>
+            <div class="card near" style="margin-top: 6px">
+              <div class="row between">
+                <span class="kicker">Nearest stand · 120 m</span
+                ><span class="kicker" style="color: var(--ok)">2 min walk</span>
+              </div>
+              <div class="row between" style="align-items: end">
+                <div style="font: 900 30px/0.9 var(--f-display); letter-spacing: -0.05em">hall 5</div>
+                <div style="text-align: right">
+                  <div
+                    style="font: 900 40px/0.85 var(--f-display); letter-spacing: -0.04em; color: var(--ok)"
+                  >
+                    4
+                  </div>
+                  <div class="kicker" style="font-size: 9px">bikes free</div>
+                </div>
+              </div>
+              <div class="bar"><i style="width: 40%"></i></div>
+            </div>
+            <div class="card" style="padding: 12px 14px; display: grid; gap: 8px">
+              <div class="row between">
+                <span class="kicker">Next finish</span
+                ><span class="kicker nf-name" style="color: var(--fg)">chrome</span>
+              </div>
+              <div class="bar"><i class="nf-bar" style="width: 70%; background: var(--primary)"></i></div>
+              <div class="nf-text" style="font-size: 13px; color: var(--muted)">
+                3 more rides to unlock Chrome
+              </div>
+            </div>
+            <nav class="dock" aria-hidden="true" style="margin-top: auto">
+              <span class="ic on"
+                ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <rect x="3" y="6" width="18" height="12" rx="3" />
+                  <path d="M7 14h4" stroke-linecap="round" /></svg
+              ></span>
+              <span class="ic"
+                ><svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  stroke-linejoin="round"
+                >
+                  <path d="M9 4 3 6.5v13L9 17l6 2.5 6-2.5v-13L15 6.5 9 4Z" />
+                  <path d="M9 4v13M15 6.5v13" /></svg
+              ></span>
+              <span class="scan"
+                ><svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.4"
+                  stroke-linecap="round"
+                >
+                  <path
+                    d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10"
+                  /></svg
+                >borrow</span
+              >
+              <span class="ic"
+                ><svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  stroke-linecap="round"
+                >
+                  <circle cx="12" cy="12" r="8.5" />
+                  <path d="M12 7.5V12l3 2" /></svg
+              ></span>
+              <span class="ic"
+                ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <circle cx="12" cy="8.5" r="3.8" />
+                  <path d="M4.5 20c1.4-3.6 4.2-5.3 7.5-5.3s6.1 1.7 7.5 5.3" stroke-linecap="round" /></svg
+              ></span>
+            </nav>
+          </div>
+        </div>
+        <figcaption><b>Home</b><span>The pass is the hero, Borrow is the raised button</span></figcaption>
+      </figure>
+
+      <!-- 3 borrow -->
+      <figure class="ph">
+        <div class="frame">
+          <div class="scr">
+            <div class="sb"><span>9:41</span><span>5G ▮▮▮</span></div>
+            <div class="row between">
+              <span class="kicker">Hall 5 stand</span
+              ><span class="okpill"><span class="dot"></span>in range</span>
+            </div>
+            <h3 class="big" style="font-size: 42px; margin: 4px 0 0">k-042, <em>all yours?</em></h3>
+            <div class="card bike-card">
+              <div class="row between" style="align-items: end">
+                <span class="bike-id">K-042</span
+                ><span class="kicker" style="text-align: right">checked<br />2 days ago</span>
+              </div>
+              <div class="row" style="flex-wrap: wrap; gap: 6px">
+                <span class="chip ok">✓ tyres ok</span><span class="chip ok">✓ brakes ok</span
+                ><span class="chip">basket</span><span class="chip">3 gears</span>
+              </div>
+            </div>
+            <ul class="steps">
+              <li>
+                <i>✓</i><span><b>Your pass</b> is free</span>
+              </li>
+              <li>
+                <i>✓</i><span><b>You're at</b> Hall 5 stand</span>
+              </li>
+            </ul>
+            <p style="margin: 0; color: var(--muted); font-size: 13px">
+              It stays on your pass until you return it at any stand. Max 4 hours.
+            </p>
+            <div class="slide mini-slide" style="margin-top: auto" aria-hidden="true">
+              <div class="fill"></div>
+              <div class="lbl">slide to borrow →</div>
+              <span class="thumb"
+                ><svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M5 12h14M13 6l6 6-6 6" /></svg
+              ></span>
+            </div>
+          </div>
+        </div>
+        <figcaption><b>Borrow</b><span>Scanned bike, slide to put it on your pass</span></figcaption>
+      </figure>
+
+      <!-- 4 riding -->
+      <figure class="ph">
+        <div class="frame">
+          <div class="scr">
+            <div class="sb"><span>9:54</span><span>5G ▮▮▮</span></div>
+            <div class="row between">
+              <span class="okpill"><span class="dot"></span>riding</span
+              ><span class="kicker">from hall 5</span>
+            </div>
+            <div class="pass-wrap">
+              <div class="pass-glow"></div>
+              <div class="pass-slot" data-state="riding"></div>
+            </div>
+            <div class="row between" style="align-items: end; margin-top: 4px">
+              <div>
+                <div class="kicker">Ride time</div>
+                <div class="timer" data-tick="768">12:48</div>
+              </div>
+              <div style="text-align: right">
+                <div class="kicker">Time left</div>
+                <div style="font: 900 26px/1 var(--f-display); letter-spacing: -0.04em">3h 47m</div>
+              </div>
+            </div>
+            <div class="card" style="padding: 12px 14px; display: grid; gap: 8px">
+              <div class="row between">
+                <span style="font-weight: 600">LHC</span><span class="kicker">80 m · 6 free</span>
+              </div>
+              <div class="row between">
+                <span style="font-weight: 600">Library</span><span class="kicker">210 m · 2 free</span>
+              </div>
+            </div>
+            <div style="margin-top: auto; display: grid; grid-template-columns: 1fr auto; gap: 8px">
+              <span class="pill pri">Return here</span>
+              <span class="pill sec">Report</span>
+            </div>
+          </div>
+        </div>
+        <figcaption><b>Riding</b><span>Bike docked on the pass, glow and live timer</span></figcaption>
+      </figure>
+
+      <!-- 5 returned -->
+      <figure class="ph">
+        <div class="frame">
+          <div class="scr">
+            <div class="sb"><span>10:04</span><span>5G ▮▮▮</span></div>
+            <ul class="steps" style="grid-template-columns: 1fr 1fr 1fr; display: grid; gap: 6px">
+              <li style="font-size: 11px"><i>✓</i>at LHC</li>
+              <li style="font-size: 11px"><i>✓</i>K-042</li>
+              <li style="font-size: 11px"><i>✓</i>photo</li>
+            </ul>
+            <h3 class="big" style="font-size: 42px; margin: 2px 0 0">nice ride, <em>aanya.</em></h3>
+            <div class="pass-wrap"><div class="pass-slot" data-state="returned"></div></div>
+            <div class="receipt" style="margin-top: 4px">
+              <div class="r-top">
+                <div class="row between">
+                  <span class="kicker" style="color: inherit; opacity: 0.7">Ride time</span
+                  ><span class="kicker" style="color: inherit; opacity: 0.7">K-042</span>
+                </div>
+                <div style="font: 900 44px/0.9 var(--f-display); font-stretch: 75%; letter-spacing: -0.03em">
+                  23:04
+                </div>
+              </div>
+              <div class="r-bot">
+                <div class="route"><b></b>Hall 5<i></i>LHC<b style="background: currentColor"></b></div>
+              </div>
+            </div>
+            <div style="margin-top: auto; display: grid; grid-template-columns: 1fr auto; gap: 8px">
+              <span class="pill pri">Share to story ↗</span>
+              <span class="pill sec">Done</span>
+            </div>
+          </div>
+        </div>
+        <figcaption><b>Returned</b><span>Stamp lands, pass is free again</span></figcaption>
+      </figure>
+
+      <!-- 6 torq -->
+      <figure class="ph">
+        <div class="frame">
+          <div class="scr">
+            <div class="sb"><span>9:58</span><span>5G ▮▮▮</span></div>
+            <div class="row" style="gap: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border)">
+              <span class="tq"
+                ><svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  stroke-linecap="round"
+                >
+                  <path d="M19.5 9.2A8 8 0 1 0 20 13" />
+                  <path d="m20.6 5.4-.9 4.1-4-.9" />
+                  <circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none" /></svg
+              ></span>
+              <div>
+                <div style="font: 900 20px/1 var(--f-display); letter-spacing: -0.03em">TORQ</div>
+                <div class="kicker" style="font-size: 9px; margin-top: 4px">AI · reads live stands</div>
+              </div>
+            </div>
+            <div class="bub me2">K-042 ka tyre flat ho gaya 😩 ab kya karu?</div>
+            <div class="steps2">
+              <span class="chip">✓ K-042 is on your pass</span><span class="chip">✓ LHC stand 80 m</span>
+            </div>
+            <div class="bub ai">
+              Oof! Walk it to <b>LHC stand</b>, 80 m ahead, and return it there. I'll report the flat so
+              nobody else picks it up.
+            </div>
+            <div class="confirm">
+              <div class="kicker" style="color: var(--primary)">TORQ wants to</div>
+              <div class="t">Report a flat tyre on K-042</div>
+              <ul>
+                <li>Admins see it in Issues</li>
+                <li>K-042 goes to maintenance after you return it</li>
+              </ul>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+                <span class="pill pri sm">Confirm</span><span class="pill sec sm">Cancel</span>
+              </div>
+            </div>
+            <div class="ask" style="margin-top: auto">
+              Ask TORQ, or hold to talk<span class="mic"
+                ><svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.4"
+                  stroke-linecap="round"
+                >
+                  <rect x="9" y="3" width="6" height="11" rx="3" />
+                  <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" /></svg
+              ></span>
+            </div>
+          </div>
+        </div>
+        <figcaption><b>TORQ</b><span>Hinglish help; it never returns a bike for you</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============ ADMIN ============ -->
+  <section class="block">
+    <div class="sec-head">
+      <div>
+        <div class="kicker">Admin web app</div>
+        <h2>who has <em>which bike.</em></h2>
+      </div>
+      <p>
+        Same fonts and colours, calmer layout. Scoreboard numbers, TORQ's digest, and the new pass scan and
+        stand check.
+      </p>
+    </div>
+    <div class="browser">
+      <div class="bar-top"><i></i><i></i><i></i><span>campuscycle.vercel.app/dashboard</span></div>
+      <div class="adm">
+        <div class="adm-head">
+          <div class="row">
+            <span class="mark"
+              ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <circle cx="12" cy="12" r="8.5" />
+                <path d="M12 3.5v17M3.5 12h17M6 6l12 12M18 6 6 18" stroke-width="1.4" />
+                <circle cx="12" cy="12" r="2.2" fill="currentColor" /></svg></span
+            ><span class="word">campuscycle</span><span class="chip" style="margin-left: 6px">admin</span>
+          </div>
+          <div class="search adm-search">
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.4"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" /></svg
+            >Search a pass, bike or rider…<span class="chip" style="margin-left: auto">⌘K</span>
+          </div>
+          <span class="pill sec sm"
+            ><svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.4"
+              stroke-linecap="round"
+            >
+              <path
+                d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"
+              /></svg
+            >Scan</span
+          >
+        </div>
+        <div>
+          <div class="kicker">IIT Kanpur · Sunday 11 Oct</div>
+          <h3>good morning, <em>ops team.</em></h3>
+        </div>
+        <div class="statgrid">
+          <div class="stat acc">
+            <span class="kicker">Bikes free</span><strong>38</strong><small>of 52 on campus</small>
+          </div>
+          <div class="stat">
+            <span class="kicker">On a pass now</span><strong>12</strong><small>avg ride 14 min</small>
+          </div>
+          <div class="stat">
+            <span class="kicker">Overdue</span><strong style="color: var(--bad)">1</strong
+            ><small>K-019 on pass IITK·0388</small>
+          </div>
+          <div class="stat">
+            <span class="kicker">Waiting approval</span><strong>4</strong><small>3 ID cards match</small>
+          </div>
+        </div>
+        <div class="two">
+          <div class="panel">
+            <div class="row between">
+              <h4>pass <em>scan</em></h4>
+              <span class="okpill"><span class="dot"></span>bike matches</span>
+            </div>
+            <div class="lookup">
+              <div class="pass-wrap"><div class="pass-slot" data-state="riding"></div></div>
+              <div class="kv">
+                <div><span>Pass</span><b>IITK · 0421</b></div>
+                <div><span>Rider</span><b>Aanya Sharma</b></div>
+                <div><span>Bike on pass</span><b>K-042 since 9:41</b></div>
+                <div><span>From</span><b>Hall 5 · 0 strikes</b></div>
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="row between">
+              <h4>stand <em>check</em></h4>
+              <span class="chip">this morning</span>
+            </div>
+            <div class="standcheck">
+              <div><span>Hall 5 · 4 of 4 bikes seen</span><span class="okpill">✓</span></div>
+              <div><span>LHC · 6 of 6 bikes seen</span><span class="okpill">✓</span></div>
+              <div>
+                <span>Library · K-017 not seen</span
+                ><span class="chip" style="color: var(--warn)">flagged</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="two">
+          <div class="panel">
+            <div class="row between">
+              <h4>torq's <em>morning digest</em></h4>
+              <span class="chip">6:00 AM</span>
+            </div>
+            <ul class="digest">
+              <li>
+                <b>86</b><span>rides yesterday, busiest from 8 to 9 am between the halls and LHC.</span>
+              </li>
+              <li>
+                <b>3</b><span>reports about K-031's brakes, grouped into one issue and marked urgent.</span>
+              </li>
+              <li>
+                <b>1</b
+                ><span>bike not seen at the Library stand check. Last pass: IITK·0377, returned Friday.</span>
+              </li>
+            </ul>
+          </div>
+          <div class="panel">
+            <div class="row between">
+              <h4>rebalance</h4>
+              <span class="okpill"><span class="dot"></span>before 8 am</span>
+            </div>
+            <div class="move">
+              <div class="route"><b></b>Hall 5<i></i>LHC<b style="background: currentColor"></b></div>
+              <div style="font-size: 13px; color: var(--muted)">
+                Move 3 bikes. LHC ran empty by 8:20 on four of the last five weekdays.
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr auto; gap: 8px">
+                <span class="pill pri sm">Confirm move</span><span class="pill sec sm">Skip</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SYSTEM ============ -->
+  <section class="block">
+    <div class="sec-head">
+      <div>
+        <div class="kicker">The system</div>
+        <h2>type, colour, <em>motion.</em></h2>
+      </div>
+      <p>All fonts are free Google Fonts. Swatches follow the theme set at the top.</p>
+    </div>
+    <div class="spec">
+      <div class="panel">
+        <span class="kicker">Type</span>
+        <div class="type-row">
+          <div style="font: 900 40px/0.9 var(--f-display); letter-spacing: -0.05em">ride anywhere</div>
+          <span class="kicker">Archivo, heaviest weight · headlines, names, timers</span>
+        </div>
+        <div class="type-row">
+          <div style="font: 400 38px/1 var(--f-accent); font-style: italic; color: var(--primary)">
+            your ride.
+          </div>
+          <span class="kicker">Fraunces italic · one accent word per headline</span>
+        </div>
+        <div class="type-row">
+          <div style="font: 500 16px/1.4 var(--f-body)">
+            Scan a bike and it's on your pass until you return it.
+          </div>
+          <span class="kicker">Figtree · everything people read</span>
+        </div>
+        <div class="type-row">
+          <div class="kicker" style="color: var(--fg); font-size: 12px">IITK · 0421 · K-042 · Hall 5</div>
+          <span class="kicker">Martian Mono · labels, pass and bike numbers</span>
+        </div>
+      </div>
+      <div class="panel">
+        <span class="kicker">Colour</span>
+        <div class="swatch">
+          <i style="background: var(--primary)"></i>
+          <div><b>Accent</b><small>main buttons, the riding glow, one word per headline</small></div>
+        </div>
+        <div class="swatch">
+          <i style="background: var(--bg)"></i>
+          <div><b>Background</b><small>blue-black after dark, cool concrete by day</small></div>
+        </div>
+        <div class="swatch">
+          <i style="background: var(--surface)"></i>
+          <div><b>Surface</b><small>cards, sheets, the dock</small></div>
+        </div>
+        <div class="swatch">
+          <i style="background: var(--ok)"></i>
+          <div><b>Go</b><small>free bikes, returned stamp</small></div>
+        </div>
+        <div class="swatch">
+          <i style="background: var(--warn)"></i>
+          <div><b>Heads-up</b><small>overdue pass, low bikes</small></div>
+        </div>
+        <div class="swatch">
+          <i style="background: var(--bad)"></i>
+          <div><b>Problem</b><small>suspended, issues, strikes</small></div>
+        </div>
+      </div>
+      <div class="panel">
+        <span class="kicker">Pass motion</span>
+        <ul class="digest">
+          <li>
+            <b>01</b
+            ><span
+              ><strong>Tilt and shine.</strong> The card follows the phone's tilt and a light streak crosses
+              the finish.</span
+            >
+          </li>
+          <li>
+            <b>02</b
+            ><span
+              ><strong>Mint.</strong> Approval reveals the card left to right with a sweep and a haptic
+              tap.</span
+            >
+          </li>
+          <li>
+            <b>03</b
+            ><span
+              ><strong>Dock.</strong> After slide to borrow, the bike number drops into the chip slot with a
+              thunk.</span
+            >
+          </li>
+          <li>
+            <b>04</b
+            ><span
+              ><strong>Glow.</strong> While riding the card breathes in the accent; amber when overdue.</span
+            >
+          </li>
+          <li>
+            <b>05</b
+            ><span><strong>Stamp.</strong> Returned lands with a bounce, then the pass is free again.</span>
+          </li>
+        </ul>
+        <span class="kicker">Reanimated · Skia · expo-sensors · expo-haptics · CSS 3D on web</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="lists">
+      <div class="panel">
+        <span class="kicker">Sync DNA</span>
+        <ul>
+          <li>Heavy lowercase headlines with one italic serif word in the accent colour</li>
+          <li>Tiny mono uppercase labels for metadata</li>
+          <li>Tilted stickers, a pulsing live dot and the marquee bands</li>
+          <li>Big rounded cards and pill buttons that squish when tapped</li>
+          <li>A floating dock with a raised centre button, now Borrow</li>
+          <li>Scoreboard numbers on the admin dashboard</li>
+          <li>Dark-first look with its own day theme, soft glows and film grain</li>
+        </ul>
+      </div>
+      <div class="panel new">
+        <span class="kicker">The Rider Pass layer</span>
+        <ul>
+          <li>No lock screen and no codes anywhere</li>
+          <li>The Rider Pass as the hero, with CRED-style tilt, flip, mint, dock and stamp</li>
+          <li>Finishes that level up with rides: Graphite, Chrome, Holo</li>
+          <li>A live pass QR on the back that refreshes every 30 seconds</li>
+          <li>Slide to borrow, and a three-tick return: at a stand, same bike, photo</li>
+          <li>Admin pass scan and stand check</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>CampusCycle UI reference · sample data for IIT Kanpur · names and numbers are examples</footer>
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var MARK =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17M3.5 12h17M6 6l12 12M18 6 6 18" stroke-width="1.4"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/></svg>';
+
+    function qr(seed) {
+      var n = 21,
+        s = seed,
+        d = '';
+      function rnd() {
+        s = (s * 1103515245 + 12345) & 0x7fffffff;
+        return s / 0x7fffffff;
+      }
+      function inFinder(x, y) {
+        return (x < 8 && y < 8) || (x > n - 9 && y < 8) || (x < 8 && y > n - 9);
+      }
+      for (var y = 0; y < n; y++)
+        for (var x = 0; x < n; x++) {
+          if (!inFinder(x, y) && rnd() > 0.52) d += 'M' + (x + 1) + ' ' + (y + 1) + 'h1v1h-1z';
+        }
+      [
+        [0, 0],
+        [n - 7, 0],
+        [0, n - 7],
+      ].forEach(function (p) {
+        var X = p[0] + 1,
+          Y = p[1] + 1;
+        d +=
+          'M' +
+          X +
+          ' ' +
+          Y +
+          'h7v7h-7zM' +
+          (X + 1) +
+          ' ' +
+          (Y + 1) +
+          'v5h5v-5zM' +
+          (X + 2) +
+          ' ' +
+          (Y + 2) +
+          'h3v3h-3z';
+      });
+      return (
+        '<svg viewBox="0 0 23 23" shape-rendering="crispEdges" aria-label="Pass QR"><path fill-rule="evenodd" fill="#0B0E13" d="' +
+        d +
+        '"/></svg>'
+      );
+    }
+    var STATUS = {
+      pending: 'pending',
+      ready: 'ready to ride',
+      riding: 'riding · 12:48',
+      overdue: 'overdue · +06:12',
+      returned: 'returned ✓',
+      suspended: 'suspended',
+    };
+    function passHTML(state, hero) {
+      return (
+        '<div class="pass" data-state="' +
+        state +
+        '"' +
+        (hero
+          ? ' id="hero-pass" role="button" tabindex="0" aria-label="Rider Pass. Press to flip."'
+          : ' aria-hidden="true"') +
+        '>' +
+        '<div class="face front"><div class="pf-bg"></div><div class="pf-holo"></div>' +
+        '<div class="pf-content">' +
+        '<div class="pf-top"><span class="pf-brand"><i>' +
+        MARK +
+        '</i>campuscycle</span><span class="pf-k">rider pass</span></div>' +
+        '<div class="pf-mid"><span class="pf-chip"><b>K-042</b></span><span class="pf-status">' +
+        STATUS[state] +
+        '</span></div>' +
+        '<div class="pf-name">aanya sharma<em>iit kanpur</em></div>' +
+        '<div class="pf-bot"><span><b>IITK · 0421</b></span><span><span class="rn">7</span> rides</span><span class="pf-fin">graphite</span></div>' +
+        '<div class="pf-stub"><span><b>IITK · 0421</b></span><span class="sb-bike"><span class="sb-none">no bike yet</span><i>K-042 · 9:41</i></span></div>' +
+        '</div>' +
+        '<div class="pf-stickers"><span><span class="rn">7</span> rides 🔥</span><span>hall 5 regular</span><span>0 strikes ✓</span></div>' +
+        '<div class="pf-wait">awaiting<br>approval</div><div class="pf-stamp">returned ✓<br>lhc · 23 min</div><div class="pf-sus">suspended · ask your admin</div>' +
+        '<div class="pf-sweep"></div><div class="pf-shine"></div><div class="pf-grain"></div></div>' +
+        '<div class="face back"><div class="pf-bg"></div><div class="pf-holo"></div>' +
+        '<div class="pb"><div class="pb-head"><span class="pf-k">pass qr · live</span><span class="pf-k">IITK · 0421</span></div>' +
+        '<div class="pb-qr">' +
+        qr(421) +
+        '</div>' +
+        '<div class="pb-side"><div class="pb-ring"><svg viewBox="0 0 32 32"><circle class="bgc" cx="16" cy="16" r="14"/><circle class="fgc" cx="16" cy="16" r="14" stroke-dashoffset="0"/></svg><span class="pb-secs">refreshes in 30s</span></div>' +
+        '<p class="pb-note">Show this if anyone asks. An admin scan shows the bike on your pass.</p></div>' +
+        '<div class="pb-stats"><div><strong class="rn">7</strong><span>rides</span></div><div><strong class="mn">96</strong><span>minutes</span></div><div><strong>hall 5</strong><span>fave stand</span></div><div><strong>0</strong><span>strikes</span></div></div>' +
+        '</div><div class="pf-shine"></div><div class="pf-grain"></div></div>' +
+        '</div>'
+      );
+    }
+    document.querySelectorAll('.pass-slot').forEach(function (slot) {
+      slot.outerHTML = passHTML(slot.dataset.state, slot.dataset.hero === '1');
+    });
+    // the riding passes show a "none" placeholder only when empty
+    var css = document.createElement('style');
+    css.textContent =
+      '.pass[data-state="riding"] .sb-none,.pass[data-state="overdue"] .sb-none{display:none}';
+    document.head.appendChild(css);
+
+    var pass = document.getElementById('hero-pass');
+    var wrap = document.getElementById('hero-wrap');
+    var act = document.getElementById('act');
+
+    /* finish label on every card */
+    var FIN = {
+      graphite: { r: 7, m: 96, next: 'chrome', bar: 70, text: '3 more rides to unlock Chrome' },
+      chrome: { r: 27, m: 412, next: 'holo', bar: 46, text: '23 more rides to unlock Holo' },
+      holo: { r: 54, m: 830, next: 'maxed', bar: 100, text: 'Top finish unlocked. Show it off.' },
+    };
+    function finLabel(f) {
+      var d = FIN[f];
+      document.querySelectorAll('.pf-fin').forEach(function (e) {
+        e.textContent = f;
+      });
+      document.querySelectorAll('.rn').forEach(function (e) {
+        e.textContent = d.r;
+      });
+      document.querySelectorAll('.mn').forEach(function (e) {
+        e.textContent = d.m;
+      });
+      document.querySelectorAll('.nf-name').forEach(function (e) {
+        e.textContent = d.next;
+      });
+      document.querySelectorAll('.nf-text').forEach(function (e) {
+        e.textContent = d.text;
+      });
+      document.querySelectorAll('.nf-bar').forEach(function (e) {
+        e.style.width = d.bar + '%';
+      });
+    }
+
+    /* ---- palette + theme  ---- */
+    function press(attr, val) {
+      document.querySelectorAll('[' + attr + ']').forEach(function (b) {
+        b.setAttribute('aria-pressed', String(b.getAttribute(attr) === val));
+      });
+    }
+    function setPal(p) {
+      root.classList.remove('pal-coral', 'pal-mint');
+      if (p !== 'signal') root.classList.add('pal-' + p);
+      press('data-pal', p);
+      try {
+        localStorage.setItem('cc-pal', p);
+      } catch (e) {}
+    }
+    function isDay() {
+      if (root.classList.contains('force-day')) return true;
+      if (root.classList.contains('force-dark')) return false;
+      var t = root.getAttribute('data-theme');
+      if (t) return t === 'light';
+      return window.matchMedia('(prefers-color-scheme: light)').matches;
+    }
+    function syncMode() {
+      var day = isDay();
+      document.querySelectorAll('[data-mode]').forEach(function (b) {
+        b.setAttribute('aria-pressed', String((b.dataset.mode === 'day') === day));
+      });
+    }
+    function setMode(m) {
+      root.classList.remove('force-day', 'force-dark');
+      root.classList.add(m === 'day' ? 'force-day' : 'force-dark');
+      syncMode();
+    }
+    function setDir(d) {
+      root.classList.remove('dir-ink', 'dir-ticket', 'dir-sticker');
+      root.classList.add('dir-' + d);
+      press('data-dir', d);
+      try {
+        localStorage.setItem('cc-dir', d);
+      } catch (e) {}
+    }
+    function setFin(f) {
+      root.classList.remove('fin-graphite', 'fin-chrome', 'fin-holo');
+      root.classList.add('fin-' + f);
+      press('data-fin', f);
+      finLabel(f);
+    }
+    document.querySelectorAll('[data-pal]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        setPal(b.dataset.pal);
+      });
+    });
+    document.querySelectorAll('[data-mode]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        setMode(b.dataset.mode);
+      });
+    });
+    document.querySelectorAll('[data-dir]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        setDir(b.dataset.dir);
+      });
+    });
+    document.querySelectorAll('[data-fin]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        setFin(b.dataset.fin);
+      });
+    });
+    var sp = null,
+      sd = null;
+    try {
+      sp = localStorage.getItem('cc-pal');
+      sd = 'ink';
+    } catch (e) {}
+    setPal(sp === 'coral' || sp === 'mint' ? sp : 'signal');
+    setDir(sd === 'ticket' || sd === 'sticker' ? sd : 'ink');
+    setFin('graphite');
+    syncMode();
+    try {
+      window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', syncMode);
+    } catch (e) {}
+
+    /* ---- tilt ---- */
+    function tilt(w, p) {
+      if (reduce) {
+        w.classList.remove('idle');
+        return;
+      }
+      w.addEventListener('pointermove', function (e) {
+        if (e.pointerType === 'touch') return;
+        var r = w.getBoundingClientRect(),
+          x = (e.clientX - r.left) / r.width,
+          y = (e.clientY - r.top) / r.height;
+        w.classList.remove('idle');
+        p.style.setProperty('--ry', ((x - 0.5) * 24).toFixed(2) + 'deg');
+        p.style.setProperty('--rx', ((0.5 - y) * 18).toFixed(2) + 'deg');
+        p.style.setProperty('--mx', (x * 100).toFixed(1) + '%');
+        p.style.setProperty('--my', (y * 100).toFixed(1) + '%');
+      });
+      w.addEventListener('pointerleave', function () {
+        p.style.removeProperty('--rx');
+        p.style.removeProperty('--ry');
+        p.style.removeProperty('--mx');
+        p.style.removeProperty('--my');
+        w.classList.add('idle');
+      });
+    }
+    tilt(wrap, pass);
+    document.querySelectorAll('.mini-tilt').forEach(function (w) {
+      tilt(w, w.querySelector('.pass'));
+    });
+
+    /* ---- flip ---- */
+    function flip() {
+      pass.classList.toggle('flipped');
+    }
+    pass.addEventListener('click', flip);
+    pass.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        flip();
+      }
+    });
+    document.getElementById('flipbtn').addEventListener('click', flip);
+
+    /* ---- live QR refresh ring ---- */
+    var secs = 30,
+      seed = 421,
+      ring = pass.querySelector('.fgc'),
+      secEl = pass.querySelector('.pb-secs'),
+      qrBox = pass.querySelector('.pb-qr');
+    setInterval(function () {
+      secs -= 1;
+      if (secs <= 0) {
+        secs = 30;
+        seed += 7;
+        qrBox.innerHTML = qr(seed);
+      }
+      ring.style.strokeDashoffset = String(88 - (secs / 30) * 88);
+      secEl.textContent = 'refreshes in ' + secs + 's';
+    }, 1000);
+
+    /* ---- state machine for the hero pass ---- */
+    var t0 = 768,
+      over = 372,
+      timers = [];
+    function fmt(s) {
+      var m = Math.floor(s / 60),
+        r = s % 60;
+      return (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r;
+    }
+    function status(t) {
+      pass.querySelector('.pf-status').textContent = t;
+    }
+    function retrigger(cls, ms) {
+      pass.classList.remove(cls);
+      void pass.offsetWidth;
+      pass.classList.add(cls);
+      setTimeout(function () {
+        pass.classList.remove(cls);
+      }, ms);
+    }
+    function setState(st, how) {
+      pass.classList.remove('flipped');
+      pass.dataset.state = st;
+      press('data-st', st);
+      if (st === 'riding') status('riding · ' + fmt(t0));
+      else if (st === 'overdue') status('overdue · +' + fmt(over));
+      else status(STATUS[st]);
+      if (how === 'mint') {
+        retrigger('minting', 1400);
+        setTimeout(function () {
+          retrigger('thunk', 520);
+        }, 1150);
+      }
+      if (how === 'dock') {
+        retrigger('docking', 900);
+        setTimeout(function () {
+          retrigger('thunk', 520);
+        }, 380);
+      }
+      if (st === 'returned') retrigger('thunk', 520);
+      renderAct(st);
+    }
+    setInterval(function () {
+      t0 += 1;
+      over += 1;
+      if (pass.dataset.state === 'riding') status('riding · ' + fmt(t0));
+      if (pass.dataset.state === 'overdue') status('overdue · +' + fmt(over));
+      document.querySelectorAll('.timer[data-tick]').forEach(function (e) {
+        var v = +e.dataset.tick + 1;
+        e.dataset.tick = v;
+        e.textContent = fmt(v);
+      });
+    }, 1000);
+
+    var ARROW =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+    function renderAct(st) {
+      if (st === 'ready') {
+        act.innerHTML =
+          '<div class="slide" id="slide"><div class="fill"></div><div class="lbl">slide to borrow K-042 →</div><button class="thumb" type="button" aria-label="Slide to borrow, or press Enter">' +
+          ARROW +
+          '</button></div>';
+        wireSlide(document.getElementById('slide'));
+      } else if (st === 'riding' || st === 'overdue') {
+        act.innerHTML =
+          '<div class="btnrow"><button class="pill pri" type="button" id="ret">Return at LHC stand</button><button class="pill sec" type="button" id="od">' +
+          (st === 'riding' ? 'Skip to overdue' : 'Back to riding') +
+          '</button></div>';
+        document.getElementById('ret').onclick = function () {
+          setState('returned');
+          timers.push(
+            setTimeout(function () {
+              if (pass.dataset.state === 'returned') setState('ready');
+            }, 2600),
+          );
+        };
+        document.getElementById('od').onclick = function () {
+          setState(st === 'riding' ? 'overdue' : 'riding');
+        };
+      } else if (st === 'pending') {
+        act.innerHTML =
+          '<button class="pill pri" type="button" id="appr">Approve as admin, then mint</button>';
+        document.getElementById('appr').onclick = function () {
+          setState('ready', 'mint');
+        };
+      } else if (st === 'suspended') {
+        act.innerHTML = '<button class="pill sec" type="button" id="rein">Reinstate as admin</button>';
+        document.getElementById('rein').onclick = function () {
+          setState('ready', 'mint');
+        };
+      } else {
+        act.innerHTML = '<button class="pill sec" type="button" id="again">Ride again</button>';
+        document.getElementById('again').onclick = function () {
+          setState('ready');
+        };
+      }
+    }
+    function wireSlide(el) {
+      var thumb = el.querySelector('.thumb'),
+        fill = el.querySelector('.fill'),
+        dragging = false,
+        startX = 0,
+        max = 0,
+        pos = 0;
+      function place(p) {
+        pos = Math.max(0, Math.min(max, p));
+        thumb.style.transform = 'translateX(' + pos + 'px)';
+        fill.style.width = pos + 54 + 'px';
+      }
+      function done() {
+        el.classList.add('done');
+        place(max);
+        setTimeout(function () {
+          setState('riding', 'dock');
+          t0 = 0;
+          status('riding · 00:00');
+        }, 180);
+      }
+      thumb.addEventListener('pointerdown', function (e) {
+        dragging = true;
+        startX = e.clientX - pos;
+        max = el.clientWidth - thumb.offsetWidth - 8;
+        thumb.setPointerCapture(e.pointerId);
+      });
+      thumb.addEventListener('pointermove', function (e) {
+        if (dragging) place(e.clientX - startX);
+      });
+      thumb.addEventListener('pointerup', function () {
+        if (!dragging) return;
+        dragging = false;
+        if (pos > max * 0.82) done();
+        else {
+          thumb.style.transition = 'transform .25s';
+          place(0);
+          setTimeout(function () {
+            thumb.style.transition = '';
+          }, 260);
+        }
+      });
+      thumb.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          max = el.clientWidth - thumb.offsetWidth - 8;
+          done();
+        }
+      });
+    }
+    document.querySelectorAll('[data-st]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        timers.forEach(clearTimeout);
+        setState(b.dataset.st);
+      });
+    });
+
+    /* ---- the story ---- */
+    document.getElementById('story').addEventListener('click', function () {
+      timers.forEach(clearTimeout);
+      timers = [];
+      var seq = [
+        [
+          0,
+          function () {
+            setState('pending');
+          },
+        ],
+        [
+          1400,
+          function () {
+            setState('ready', 'mint');
+          },
+        ],
+        [
+          3300,
+          function () {
+            var s = document.getElementById('slide');
+            if (!s) return;
+            var th = s.querySelector('.thumb'),
+              f = s.querySelector('.fill'),
+              m = s.clientWidth - th.offsetWidth - 8;
+            th.style.transition = 'transform .7s cubic-bezier(.6,0,.3,1)';
+            f.style.transition = 'width .7s cubic-bezier(.6,0,.3,1)';
+            th.style.transform = 'translateX(' + m + 'px)';
+            f.style.width = m + 54 + 'px';
+          },
+        ],
+        [
+          4100,
+          function () {
+            t0 = 0;
+            setState('riding', 'dock');
+          },
+        ],
+        [
+          7000,
+          function () {
+            setState('returned');
+          },
+        ],
+        [
+          9400,
+          function () {
+            setState('ready');
+          },
+        ],
+      ];
+      if (reduce)
+        seq = seq.map(function (s, i) {
+          return [i * 1200, s[1]];
+        });
+      seq.forEach(function (s) {
+        timers.push(setTimeout(s[1], s[0]));
+      });
+      document
+        .getElementById('pass')
+        .scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    });
+
+    setState('ready');
+  })();
+</script>
