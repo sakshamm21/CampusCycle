@@ -924,6 +924,32 @@ end $$;
 
 After adding it, run `pnpm db:types` so both functions appear in `database.types.ts`.
 
+## 19b. Migration 18: `20261012000018_service_helpers.sql`
+
+Two functions only the service role may call, in the same style as `admin_run_demo_reset` (§17). They exist because the `private` schema is never exposed through the API, so scripts and tests that hold the service key still need a public entry point.
+
+```sql
+-- Service only. The private schema is not exposed through the API, so this is how
+-- `scripts/db.mjs reset` writes the per-project values of private.app_config (01 §6.1).
+create or replace function public.admin_set_app_config(p_key text, p_value text) returns void
+language plpgsql security definer set search_path = '' as $$
+begin
+  if p_key not in ('owner_email', 'functions_base_url', 'internal_secret') then
+    raise exception 'bad key %', p_key;
+  end if;
+  perform private.set_config_value(p_key, coalesce(p_value, ''));
+end $$;
+
+-- Service only: lets the database tests run the ride timers without waiting for pg_cron
+create or replace function public.admin_run_ride_timers() returns void
+language sql security definer set search_path = '' as $$ select private.process_ride_timers() $$;
+
+revoke execute on function public.admin_set_app_config(text, text), public.admin_run_ride_timers()
+  from public, anon, authenticated;
+```
+
+`admin_set_app_config` accepts only the three per-project keys; QR secrets and `last_demo_reset_at` stay out of reach.
+
 ## 20. Seed (`supabase/seed/`)
 
 `supabase/config.toml` contains:
@@ -1021,117 +1047,74 @@ Run with `pnpm seed:auth` (dev project, reads `.env`) or `pnpm seed:auth:prod` (
 6. Call `rpc('admin_run_demo_reset')`.
 7. Print a table of demo logins (emails and the public demo password only) and `done`.
 
+Any step that fails (creating a user, `admin_setup_demo_account`, an ID card upload, the demo reset) throws, and the script exits 1 with the message. It never logs a failure and carries on: a half-seeded project must fail `pnpm db:reset` and CI.
+
 `scripts/make-demo-id-cards.mjs` renders the four sample ID cards with `sharp` from inline SVG (1000×630 px, white card, grey header "SAMPLE STUDENT ID · NOT A REAL CARD", fields Name, Roll No, Programme "B.Tech", Institute "IIT Kanpur", a grey photo square, diagonal "SAMPLE" watermark at 12% opacity). applicant04's card prints "Rohit Verma" (typed name is Rohan Verma). Output: `supabase/seed/assets/id-cards/applicant01.png` … `applicant04.png` (committed).
 
 ## 21. Database tests (`supabase/tests/database/`)
 
-Run with `pnpm db:test` (`vitest run supabase/tests/database`, 01 §6.1), which runs each test file against the hosted Supabase project using `@supabase/supabase-js`. No local PostgreSQL binaries or `psql` are required.
+Run with `pnpm db:test` (01 §6.1), which runs each test file against the hosted Supabase project using `@supabase/supabase-js`. No local PostgreSQL binaries or `psql` are required. The files in the repository are the reference; this section states the rules they follow.
 
-### 21.1 `helpers.ts` (`supabase/tests/database/helpers.ts`)
+### 21.1 `helpers.ts`
 
-```typescript
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+| Export                                                                       | What it does                                                                                                                                                                                                                                                 |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `adminClient`, `createAnonClient()`                                          | the service-role client and an anon client (no session persistence)                                                                                                                                                                                          |
+| `demoSession('rider' \| 'admin' \| 'super')`                                 | signs in a protected demo account once per run and reuses it                                                                                                                                                                                                 |
+| `createWorld({ riders, bikes })`                                             | builds a **real (non-demo) college**: two stands about 1.5 km apart, a college admin, approved riders (approved through `approve_rider`), bikes created through `create_bikes` with their signed QR payloads. Returns ids, signed-in clients and `destroy()` |
+| `createTestUser(collegeId, opts)`, `promote(id, role)`, `deleteTestUser(id)` | a real person signed up through the auth trigger (email `t-<random>@cctest.example.com`); `promote` makes an admin with the service key                                                                                                                      |
+| `at(stand, accuracy?)`, `FAR_AWAY`                                           | GPS arguments for standing at a stand, or outside every stand                                                                                                                                                                                                |
+| `ok(res)`, `refused(res)`, `raised(res)`, `denied(res)`                      | assert a call succeeded; the `code` of a `{ ok: false }` answer; the code of a raised error; whether Postgres refused it for lack of privilege (`42501`)                                                                                                     |
+| `row`, `passOf`, `notificationsOf`, `auditCount`                             | read the resulting state with the service client                                                                                                                                                                                                             |
+| `purgeTestData()`                                                            | removes colleges named `Test T…` and `@cctest.example.com` accounts left by an interrupted run                                                                                                                                                               |
 
-export const adminClient: SupabaseClient = createClient(
-  process.env.SUPABASE_URL || 'http://localhost:54321',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-);
+### 21.2 Rules for every database test
 
-export async function createTestCollege(code: string, prefix: string) {
-  const { data, error } = await adminClient
-    .from('colleges')
-    .insert({
-      name: `Test ${code}`,
-      short_code: code,
-      bike_prefix: prefix,
-      email_domains: [`${code.toLowerCase()}.test`],
-    })
-    .select('id')
-    .single();
-  if (error) throw error;
-  return data.id;
-}
+1. **Real riders for real rules.** Demo accounts skip the geofence, never get suspended and are confined to demo rows, so anything about location, strikes, suspension or college isolation is tested in a `createWorld()` college. Demo accounts are used only to test demo behaviour (070, 120) and as "an admin of another college".
+2. **Call the real parameter names** from 02 and 02b (`p_code`, `p_sig`, `p_lat`, `p_lng`, `p_accuracy`, `p_is_mock`, `p_demo_stand_id`) as the signed-in person. The service-role client has no `auth.uid()`: use it only to set up, to read state back, and to call service-only functions.
+3. **Assert the exact code and then the resulting rows.** `expect(refused(res)).toBe('CC_NOT_AT_STAND')`, then read the pass, bike or ride with the service client. Never `toBeDefined()` on an error or a column (it passes on `null`), never a list of acceptable codes, and never write a value with the service key and assert that same value.
+4. **A denied write is `42501`.** RLS hiding a row returns no error and no rows, so "cannot update" is asserted with `denied(res)` or by reading the row back unchanged.
+5. **Time is moved, not waited for.** Set `rides.due_at` with the service client and call `admin_run_ride_timers` (§19b). The one exception is the pass QR expiry in 110, which waits for the server's 30-second windows.
+6. **Clean up.** Every file destroys its college in `afterAll`; files that change demo state call `admin_run_demo_reset()`. A run leaves no non-demo rows behind.
+7. **Fresh accounts per file.** Rate limits are per user id (borrow 20 per 10 minutes, typed codes 8), so each file creates its own riders and uses the demo rider sparingly.
 
-export async function createTestStand(collegeId: string, name: string, lat: number, lng: number) {
-  const { data, error } = await adminClient
-    .from('stands')
-    .insert({ college_id: collegeId, name, lat, lng, radius_m: 40, capacity: 2 })
-    .select('id')
-    .single();
-  if (error) throw error;
-  return data.id;
-}
-
-export async function createTestBike(collegeId: string, code: string, standId: string, isDemo = false) {
-  const { data, error } = await adminClient
-    .from('bikes')
-    .insert({ college_id: collegeId, short_code: code, current_stand_id: standId, is_demo: isDemo })
-    .select('id')
-    .single();
-  if (error) throw error;
-  return data.id;
-}
-```
-
-### 21.2 `010_borrow_return.test.ts` (full pattern)
+### 21.3 Pattern (from `010_borrow_return.test.ts`)
 
 ```typescript
-import { describe, it, expect, beforeAll } from 'vitest';
-import { adminClient, createTestCollege, createTestStand, createTestBike } from './helpers';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { at, createWorld, FAR_AWAY, ok, passOf, refused, row, type TestUser, type World } from './helpers';
 
-describe('Borrow and Return RPCs', () => {
-  let collegeId: string;
-  let standAId: string;
-  let standBId: string;
-  let bike1Id: string;
-  let bikeSig: string;
+describe('010: Borrow and Return RPCs', () => {
+  let world: World;
+  let rider: TestUser;
 
   beforeAll(async () => {
-    collegeId = await createTestCollege('TA', 'TA');
-    standAId = await createTestStand(collegeId, 'Stand A', 26.5, 80.2);
-    standBId = await createTestStand(collegeId, 'Stand B', 26.51, 80.21);
-    bike1Id = await createTestBike(collegeId, 'TA-001', standAId);
-
-    const { data: sig } = await adminClient.rpc('demo_sign_bike', { p_short_code: 'TA-001' });
-    bikeSig = sig || 'test-sig';
+    world = await createWorld({ riders: 2, bikes: 3 });
+    rider = world.riders[0];
   });
 
-  it('rejects borrow with bad QR signature', async () => {
-    const { data } = await adminClient.rpc('borrow_bike', {
-      p_short_code: 'TA-001',
-      p_signature: 'wrongsignature00000000',
-      p_lat: 26.5,
-      p_lng: 80.2,
-      p_accuracy_m: 10,
-      p_is_mock: false,
-    });
-    expect(data?.code).toBe('CC_BAD_QR');
+  afterAll(async () => {
+    await world?.destroy();
   });
 
-  it('rejects borrow when outside geofence', async () => {
-    const { data } = await adminClient.rpc('borrow_bike', {
-      p_short_code: 'TA-001',
-      p_signature: bikeSig,
-      p_lat: 26.6,
-      p_lng: 80.3,
-      p_accuracy_m: 10,
-      p_is_mock: false,
-    });
-    expect(data?.code).toBe('CC_NOT_AT_STAND');
+  it('refuses a borrow from outside every stand and names the nearest one', async () => {
+    const bike = world.bikes[0];
+    const res = await rider.client.rpc('borrow_bike', { p_code: bike.code, p_sig: bike.sig, ...FAR_AWAY });
+    expect(refused(res)).toBe('CC_NOT_AT_STAND');
+    expect(res.data.data.distance_m).toBeGreaterThan(1000);
   });
 
-  it('rejects borrow with mock location', async () => {
-    const { data } = await adminClient.rpc('borrow_bike', {
-      p_short_code: 'TA-001',
-      p_signature: bikeSig,
-      p_lat: 26.5,
-      p_lng: 80.2,
-      p_accuracy_m: 10,
-      p_is_mock: true,
-    });
-    expect(data?.code).toBe('CC_MOCK_LOCATION');
+  it('borrows at the stand and links the bike and the pass to each other', async () => {
+    const bike = world.bikes[0];
+    const res = ok(
+      await rider.client.rpc('borrow_bike', { p_code: bike.code, p_sig: bike.sig, ...at(world.standA) }),
+    );
+
+    const pass = await passOf(rider.id);
+    expect(pass).toMatchObject({ status: 'riding', current_bike_id: bike.id, current_ride_id: res.ride_id });
+    expect(await row('bikes', bike.id)).toMatchObject({ status: 'borrowed', current_pass_id: pass.id });
   });
 });
 ```
 
-The other database test files and their cases are listed in `09-testing-release.md` §2.1. Each follows the TypeScript/Vitest pattern above.
+The other database test files and their cases are listed in `09-testing-release.md` §2.1. Each follows the rules above.

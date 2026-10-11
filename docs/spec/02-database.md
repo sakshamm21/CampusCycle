@@ -13,25 +13,26 @@ Rules that apply to every SQL object in this file:
 
 ## 1. Migration order
 
-| #   | File                                 | Contents                                                                                        |
-| --- | ------------------------------------ | ----------------------------------------------------------------------------------------------- |
-| 1   | `20261012000001_extensions.sql`      | extensions, `private` schema, privileges                                                        |
-| 2   | `20261012000002_enums.sql`           | all enum types                                                                                  |
-| 3   | `20261012000003_core_tables.sql`     | colleges, profiles, stands, bikes, rider_passes, rides, issue_reports, notifications, audit_log |
-| 4   | `20261012000004_private.sql`         | app_secrets, app_config, rate_limits, demo_bike_home, private helper functions                  |
-| 5   | `20261012000005_auth_helpers.sql`    | role/college helper functions used by RLS and RPCs                                              |
-| 6   | `20261012000006_rls.sql`             | RLS enable + every policy, column grants, views                                                 |
-| 7   | `20261012000007_auth_triggers.sql`   | new-user trigger, owner/demo guards                                                             |
-| 8   | `20261012000008_rider_functions.sql` | context, colleges list, applications, stands, pass QR, issues, notifications                    |
-| 9   | `20261012000009_ride_functions.sql`  | preview_bike, borrow_bike, check_return_location, return_bike, attach_return_photo              |
-| 10  | `20261012000010_admin_functions.sql` | approvals, users, rides, bikes, stands, scans, issues, settings, colleges, stats                |
-| 11  | `20261012000011_storage.sql`         | buckets and storage policies                                                                    |
-| 12  | `20261012000012_notify_and_cron.sql` | `private.call_function`, push trigger, ride timers, cron jobs                                   |
-| 13  | `20261012000013_ai_tables.sql`       | the 11 `ai_*` tables, indexes, RLS                                                              |
-| 14  | `20261012000014_ai_functions.sql`    | vector search, usage, settings, insights, forecast, AI queue triggers, sweep, AI cron           |
-| 15  | `20261012000015_demo.sql`            | demo account setup, history generator, demo reset, demo cron                                    |
-| 16  | `20261012000016_realtime.sql`        | realtime publication                                                                            |
-| 17  | `20261012000017_extras.sql`          | `demo_qr_samples` (public demo page), `colleges_overview` (super admin)                         |
+| #   | File                                 | Contents                                                                                                             |
+| --- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| 1   | `20261012000001_extensions.sql`      | extensions, `private` schema, privileges                                                                             |
+| 2   | `20261012000002_enums.sql`           | all enum types                                                                                                       |
+| 3   | `20261012000003_core_tables.sql`     | colleges, profiles, stands, bikes, rider_passes, rides, issue_reports, notifications, audit_log                      |
+| 4   | `20261012000004_private.sql`         | app_secrets, app_config, rate_limits, demo_bike_home, private helper functions                                       |
+| 5   | `20261012000005_auth_helpers.sql`    | role/college helper functions used by RLS and RPCs                                                                   |
+| 6   | `20261012000006_rls.sql`             | RLS enable + every policy, column grants, views                                                                      |
+| 7   | `20261012000007_auth_triggers.sql`   | new-user trigger, owner/demo guards                                                                                  |
+| 8   | `20261012000008_rider_functions.sql` | context, colleges list, applications, stands, pass QR, issues, notifications                                         |
+| 9   | `20261012000009_ride_functions.sql`  | preview_bike, borrow_bike, check_return_location, return_bike, attach_return_photo                                   |
+| 10  | `20261012000010_admin_functions.sql` | approvals, users, rides, bikes, stands, scans, issues, settings, colleges, stats                                     |
+| 11  | `20261012000011_storage.sql`         | buckets and storage policies                                                                                         |
+| 12  | `20261012000012_notify_and_cron.sql` | `private.call_function`, push trigger, ride timers, cron jobs                                                        |
+| 13  | `20261012000013_ai_tables.sql`       | the 11 `ai_*` tables, indexes, RLS                                                                                   |
+| 14  | `20261012000014_ai_functions.sql`    | vector search, usage, settings, insights, forecast, AI queue triggers, sweep, AI cron                                |
+| 15  | `20261012000015_demo.sql`            | demo account setup, history generator, demo reset, demo cron                                                         |
+| 16  | `20261012000016_realtime.sql`        | realtime publication                                                                                                 |
+| 17  | `20261012000017_extras.sql`          | `demo_qr_samples` (public demo page), `colleges_overview` (super admin)                                              |
+| 18  | `20261012000018_service_helpers.sql` | service-only `admin_set_app_config` (private config for `db.mjs reset`) and `admin_run_ride_timers` (database tests) |
 
 Seed files (`02b-database-ai-demo.md` §20) live in `supabase/seed/` and are applied on the dev project by `pnpm db:reset` and on the production project by `pnpm db:push:prod` (`supabase db push --include-seed`), see 01 §6.1. Tests (`02b` §21) live in `supabase/tests/database/`.
 

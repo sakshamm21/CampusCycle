@@ -13,6 +13,7 @@ Apps never call `supabase.rpc` or `supabase.from` directly from screens. They ca
 - Rider RPCs (`borrow_bike`, `preview_bike`, `check_return_location`, `return_bike`, `attach_return_photo`, `report_issue`, `request_ride_close`, `get_my_pass_qr`, `request_password_reset`, `admin_scan_pass`, `admin_scan_bike`) **return** `{ ok: true, ... }` or `{ ok: false, code, data }`. The wrapper throws `new AppError(code, data)` when `ok` is false.
 - All other RPCs **raise** on failure. supabase-js returns `error.message = 'CC_...'` and `error.hint = '<json>'`. The wrapper throws `new AppError(error.message, JSON.parse(error.hint ?? '{}'))`.
 - Every wrapper first checks `error` from supabase-js, converts through `toAppError()` and rethrows.
+- These three rules live in one place, `packages/shared/src/api/call.ts`, and every wrapper goes through it: `unwrap(res)` (typed tables and set-returning RPCs) and `unwrapAs<T>(res)` (RPCs that return jsonb) throw the `AppError` for a supabase-js `error` **and** for an `{ ok: false }` answer; `requireUid(db)` returns the signed-in user id from the local session or throws `CC_NOT_SIGNED_IN`; `invoke<T>(db, name, body?)` calls an Edge Function and turns its JSON error body (§4.2) into an `AppError`. A wrapper never returns an `{ ok: false }` object and never throws a raw supabase-js error. `packages/shared/test/api.test.ts` holds this with a fake client, and the smoke test checks it against the hosted project (a forged QR must reject with `CC_BAD_QR`).
 - Admin RPCs called from the admin web app always pass `p_source: 'admin'` (or rely on the default). TORQ passes `p_source: 'torq'` and `p_ai_action_id`.
 
 ## 2. Error codes and copy
@@ -367,33 +368,33 @@ Each takes `db: CampusClient` as first argument.
 
 ### 3.4 Admin wrappers (`api/admin.ts`)
 
-| Wrapper                                                                                        | Calls                                                                           |
-| ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `dashboardStats(db, collegeId)`                                                                | `rpc('dashboard_stats')`                                                        |
-| `ridesPerDay(db, collegeId, days = 30)`                                                        | `rpc('rides_per_day')`                                                          |
-| `approveRider(db, userId)` / `approveRiders(db, ids)`                                          | `rpc('approve_rider')` / `rpc('approve_riders')`                                |
-| `rejectRider(db, userId, reason)`                                                              | `rpc('reject_rider')`                                                           |
-| `suspendRider(db, userId, reason)` / `reinstateRider(db, userId)` / `resetStrikes(db, userId)` | matching RPCs                                                                   |
-| `setUserRole(db, userId, role, collegeId?)`                                                    | `rpc('set_user_role')` (super admin UI only)                                    |
-| `resetPassword(db, userId)`                                                                    | Edge Function `admin-reset-password` (§4.13) → `{ temp_password }`              |
-| `forceReturn(db, rideId, standId, note, addStrike)`                                            | `rpc('force_return')`                                                           |
-| `markBikeMissing(db, bikeId, note, addStrike)`                                                 | `rpc('mark_bike_missing')`                                                      |
-| `setBikeMaintenance(db, bikeId, on, note)`                                                     | `rpc('set_bike_maintenance')` → `{ result }`                                    |
-| `moveBike(db, bikeId, standId)` / `moveBikes(db, moves)`                                       | `rpc('move_bike')` / `rpc('move_bikes')`                                        |
-| `createBikes(db, collegeId, standId, count, notes)`                                            | `rpc('create_bikes')` → `{ codes }`                                             |
-| `updateBikeNotes`, `retireBike`, `clearBikeFlag`                                               | matching RPCs                                                                   |
-| `bikeQrPayloads(db, bikeIds)`                                                                  | `rpc('admin_bike_qr_payloads')`                                                 |
-| `upsertStand(db, s)`                                                                           | `rpc('upsert_stand')` → `{ id }`                                                |
-| `scanPass(db, payload)` / `scanBike(db, payload)`                                              | `rpc('admin_scan_pass')` / `rpc('admin_scan_bike')`                             |
-| `standCheckSubmit(db, standId, codes)`                                                         | `rpc('stand_check_submit')`                                                     |
-| `updateIssue(db, issueId, patch)`                                                              | `rpc('update_issue', { p_status, p_note, p_assign_to_me, p_bike_maintenance })` |
-| `updateCollegeSettings(db, s)`                                                                 | `rpc('update_college_settings')`                                                |
-| `createCollege(db, c)` / `setCollegeActive(db, id, active)`                                    | matching RPCs                                                                   |
-| `collegesOverview(db)`                                                                         | `rpc('colleges_overview')` (02b §19)                                            |
-| `aiUsageSummary(db, collegeId \| null)`                                                        | `rpc('ai_usage_summary')`                                                       |
-| `updateAiSettings(db, collegeId \| null, patch)`                                               | `rpc('update_ai_settings')`                                                     |
-| `setInsightStatus(db, id, status)`                                                             | `rpc('set_insight_status')`                                                     |
-| `signedPhotoUrl(db, bucket, path)`                                                             | `storage.from(bucket).createSignedUrl(path, 600)`                               |
+| Wrapper                                                                                        | Calls                                                                                                                                     |
+| ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `dashboardStats(db, collegeId)`                                                                | `rpc('dashboard_stats')`                                                                                                                  |
+| `ridesPerDay(db, collegeId, days = 30)`                                                        | `rpc('rides_per_day')`                                                                                                                    |
+| `approveRider(db, userId)` / `approveRiders(db, ids)`                                          | `rpc('approve_rider')` / `rpc('approve_riders')`                                                                                          |
+| `rejectRider(db, userId, reason)`                                                              | `rpc('reject_rider')`                                                                                                                     |
+| `suspendRider(db, userId, reason)` / `reinstateRider(db, userId)` / `resetStrikes(db, userId)` | matching RPCs                                                                                                                             |
+| `setUserRole(db, userId, role, collegeId?)`                                                    | `rpc('set_user_role')` (super admin UI only)                                                                                              |
+| `resetPassword(db, userId)`                                                                    | Edge Function `admin-reset-password` (§4.13) → `{ temp_password }`                                                                        |
+| `forceReturn(db, rideId, standId, note, addStrike)`                                            | `rpc('force_return')`                                                                                                                     |
+| `markBikeMissing(db, bikeId, note, addStrike)`                                                 | `rpc('mark_bike_missing')`                                                                                                                |
+| `setBikeMaintenance(db, bikeId, on, note)`                                                     | `rpc('set_bike_maintenance')` → `{ result }`                                                                                              |
+| `moveBike(db, bikeId, standId)` / `moveBikes(db, moves)`                                       | `rpc('move_bike')` / `rpc('move_bikes')` with `moves: { bike_code, stand_id }[]` (codes, not ids: 02 §12) → `{ moved }`                   |
+| `createBikes(db, collegeId, standId, count, notes)`                                            | `rpc('create_bikes')` → `{ codes }`                                                                                                       |
+| `updateBikeNotes`, `retireBike`, `clearBikeFlag`                                               | matching RPCs                                                                                                                             |
+| `bikeQrPayloads(db, bikeIds)`                                                                  | `rpc('admin_bike_qr_payloads')`                                                                                                           |
+| `upsertStand(db, s)`                                                                           | `rpc('upsert_stand')` → `{ id }`. A new stand sends `p_id: null` explicitly (the argument has no SQL default, so PostgREST needs the key) |
+| `scanPass(db, payload)` / `scanBike(db, payload)`                                              | `rpc('admin_scan_pass')` / `rpc('admin_scan_bike')`                                                                                       |
+| `standCheckSubmit(db, standId, codes)`                                                         | `rpc('stand_check_submit')`                                                                                                               |
+| `updateIssue(db, issueId, patch)`                                                              | `rpc('update_issue', { p_status, p_note, p_assign_to_me, p_bike_maintenance })`                                                           |
+| `updateCollegeSettings(db, s)`                                                                 | `rpc('update_college_settings')`                                                                                                          |
+| `createCollege(db, c)` / `setCollegeActive(db, id, active)`                                    | matching RPCs. A college without a centre sends `p_center_lat: null`, `p_center_lng: null` explicitly, never `0`                          |
+| `collegesOverview(db)`                                                                         | `rpc('colleges_overview')` (02b §19)                                                                                                      |
+| `aiUsageSummary(db, collegeId \| null)`                                                        | `rpc('ai_usage_summary')`                                                                                                                 |
+| `updateAiSettings(db, collegeId \| null, patch)`                                               | `rpc('update_ai_settings')`. `null` is the global row and is sent as `p_college_id: null` explicitly                                      |
+| `setInsightStatus(db, id, status)`                                                             | `rpc('set_insight_status')`                                                                                                               |
+| `signedPhotoUrl(db, bucket, path)`                                                             | `storage.from(bucket).createSignedUrl(path, 600)`                                                                                         |
 
 ### 3.5 Storage helpers (`api/storage.ts`)
 
@@ -474,8 +475,8 @@ _shared/
 
 - CORS: `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Headers: authorization, x-client-info, apikey, content-type`, `Access-Control-Allow-Methods: POST, OPTIONS`. Every function answers `OPTIONS` with 204.
 - `requireUser`: reads `Authorization: Bearer <jwt>`, builds `userDb` with the anon key and that header, calls `userDb.auth.getUser()`; on failure returns 401 `{ code: 'CC_NOT_SIGNED_IN' }`.
-- `requireInternal`: compares header `x-internal-secret` with `Deno.env.get('INTERNAL_SECRET')` in constant time; mismatch → 401.
-- Errors are returned as JSON `{ code, message }` with status 400 (business), 401, 403, 429 (limits) or 500.
+- `requireInternal`: compares header `x-internal-secret` with `Deno.env.get('INTERNAL_SECRET')` in constant time (a loop over every byte that ORs the differences, never `===`); mismatch → 401.
+- Errors are returned as JSON `{ code, message, data? }` with status 400 (business), 401, 403, 404, 429 (limits) or 500. `code` is always one from §2.1, and `data` carries the placeholders of its copy (for example `{ bike }` for `CC_PASS_HAS_BIKE`). An unexpected failure is logged with `console.error` and answered as 500 `CC_UNKNOWN` with a generic message; a database or auth error message is never sent to the client.
 
 ### 4.3 `torq-chat` (POST, SSE)
 
@@ -554,7 +555,7 @@ Body `{ notification_id }`.
 ### 4.10 `cleanup-photos` (POST, internal)
 
 1. Select rides with `return_photo_path is not null and ended_at < now() - interval '30 days'` (limit 500 per run).
-2. `storage.from('return-photos').remove(paths)` in batches of 100, then set `return_photo_path = null` on those rides.
+2. `storage.from('return-photos').remove(paths)` in batches of 100, then set `return_photo_path = null` on the rides of each batch **whose removal succeeded**. A failed batch is logged and left as it is, so the next run retries it instead of leaving files nothing points at.
 3. Same for `torq-photos` objects older than 30 days (list by folder with the storage API) and `issue-photos` of issues resolved more than 30 days ago (`photo_path` set to null).
 4. Return `{ removed: n }`.
 
@@ -565,20 +566,22 @@ On app start, after sign-in, when notification permission is granted: `Notificat
 ### 4.12 `delete-account` (POST, JSON, user JWT)
 
 1. Load the caller's profile and pass with the service client.
-2. Refuse: owner → 400 `CC_OWNER_PROTECTED`; `demo_role` not null → 400 `CC_DEMO_PROTECTED`; pass holds a bike → 400 `CC_PASS_HAS_BIKE` with `{ bike }`.
+2. Refuse: owner → 400 `CC_OWNER_PROTECTED`; `demo_role` not null → 400 `CC_DEMO_PROTECTED`; pass holds a bike → 400 `CC_PASS_HAS_BIKE` with `data: { bike }`.
 3. Delete storage objects in the caller's folder of all four buckets (list then remove).
 4. Delete `ai_threads` (cascades messages and actions), `ai_memories`, `ai_usage` rows of pool `user:<uid>`.
-5. Insert `audit_log` (`actor_id` = caller, `via 'app'`, `action 'account.delete'`, `target_id` uid, `college_id`).
+5. Insert `audit_log` (`actor_id` = caller, `via 'app'`, `action 'account.delete'`, `target_type 'profile'`, `target_id` uid, `college_id` (may be null), `is_demo` from the profile).
 6. `auth.admin.deleteUser(uid)`. The profile cascade deletes pass and notifications; rides, issues and audit rows keep their data with `rider_id`/`reporter_id`/`actor_id` set to null (anonymised by the foreign keys).
 7. Return `{ ok: true }`. The client signs out locally and goes to R01.
+
+Every step checks its result. If one fails, the function stops there with 500 `CC_UNKNOWN` and the account still exists, so the rider can try again; it never deletes the auth user after a failed clean-up step. Storage folders are listed 1000 files at a time until empty.
 
 ### 4.13 `admin-reset-password` (POST, JSON, user JWT)
 
 Request `{ user_id }`.
 
 1. With `userDb`, call `rpc('get_my_context')`; the caller must be an approved `college_admin` or `super_admin`, else 403 `CC_FORBIDDEN`.
-2. Load the target profile with the service client. Refuse: target is owner → `CC_OWNER_PROTECTED`; `demo_role` set → `CC_DEMO_PROTECTED`; caller is demo and target is not demo → `CC_DEMO_FORBIDDEN`; caller is a college admin of a different college → `CC_FORBIDDEN`.
-3. Temporary password: three words from the fixed list in `_shared/words.ts` (200 short lowercase English words, committed) joined with `-` plus two digits, for example `river-lamp-oak-42`.
+2. Load the target profile with the service client. Refuse: target is owner → `CC_OWNER_PROTECTED`; `demo_role` set → `CC_DEMO_PROTECTED`; caller is demo and target is not demo → `CC_DEMO_FORBIDDEN`; caller is a college admin of a different college → `CC_FORBIDDEN`; **target's role is not below the caller's** → `CC_FORBIDDEN`: a college admin resets riders only, a super admin resets riders and college admins, and nobody resets a super admin through this function (a reset hands over the account, so an equal or higher role must never be reachable this way; the owner fixes a locked-out super admin from the Supabase dashboard).
+3. Temporary password: three words from the fixed list in `_shared/words.ts` (200 short lowercase English words, committed) joined with `-` plus two digits, for example `river-lamp-oak-42`. Words and digits are picked with `crypto.getRandomValues`, never `Math.random`.
 4. `auth.admin.updateUserById(user_id, { password })`, then update `profiles.password_reset_requested_at = null`.
 5. Insert `audit_log` (`actor_id` caller, `via 'admin'`, `action 'user.reset_password'`, `target_type 'profile'`, `target_id` user id). Never log the password.
 6. Insert a notification for the target: kind `password_reset`, title `Password reset`, body `Your college admin set a temporary password. Change it in Profile after you sign in.`
