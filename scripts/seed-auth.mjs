@@ -157,9 +157,7 @@ async function main() {
       p_college: IITK_ID,
       p_pass_number: item.pass_number,
     });
-    if (rpcErr) {
-      console.error(`[seed-auth] Failed to setup demo account for ${item.email}:`, rpcErr.message);
-    }
+    if (rpcErr) throw new Error(`setup demo account ${item.email}: ${rpcErr.message}`);
   }
 
   // 2. 20 Sample riders
@@ -182,9 +180,7 @@ async function main() {
       p_college: IITK_ID,
       p_pass_number: item.pass_number,
     });
-    if (rpcErr) {
-      console.error(`[seed-auth] Failed to setup sample rider ${item.email}:`, rpcErr.message);
-    }
+    if (rpcErr) throw new Error(`setup sample rider ${item.email}: ${rpcErr.message}`);
   }
 
   // 3. 4 Applicants
@@ -207,9 +203,7 @@ async function main() {
       p_college: IITK_ID,
       p_pass_number: null,
     });
-    if (rpcErr) {
-      console.error(`[seed-auth] Failed to setup applicant ${item.email}:`, rpcErr.message);
-    }
+    if (rpcErr) throw new Error(`setup applicant ${item.email}: ${rpcErr.message}`);
 
     // Upload ID card
     const idCardPath = path.join(idCardsDir, `applicant${numStr}.png`);
@@ -220,11 +214,12 @@ async function main() {
         contentType: 'image/png',
         upsert: true,
       });
-      if (uploadErr) {
-        console.warn(`[seed-auth] Warning uploading ID card for ${item.email}:`, uploadErr.message);
-      } else {
-        await supabase.from('profiles').update({ id_photo_path: targetPath }).eq('id', user.id);
-      }
+      if (uploadErr) throw new Error(`upload ID card for ${item.email}: ${uploadErr.message}`);
+      const { error: pathErr } = await supabase
+        .from('profiles')
+        .update({ id_photo_path: targetPath })
+        .eq('id', user.id);
+      if (pathErr) throw new Error(`set ID card path for ${item.email}: ${pathErr.message}`);
     }
   }
 
@@ -239,11 +234,8 @@ async function main() {
         email_confirm: true,
         user_metadata: { full_name: 'Owner' },
       });
-      if (ownerErr) {
-        console.error('[seed-auth] Error creating owner:', ownerErr.message);
-      } else {
-        console.log('owner: created');
-      }
+      if (ownerErr) throw new Error(`create owner: ${ownerErr.message}`);
+      console.log('owner: created');
     } else {
       console.log('owner: exists');
     }
@@ -252,9 +244,7 @@ async function main() {
   // 5. Run demo reset
   console.log('[seed-auth] Running admin_run_demo_reset...');
   const { error: resetErr } = await supabase.rpc('admin_run_demo_reset');
-  if (resetErr) {
-    console.error('[seed-auth] Failed to run admin_run_demo_reset:', resetErr.message);
-  }
+  if (resetErr) throw new Error(`admin_run_demo_reset: ${resetErr.message}`);
 
   // 6. Print summary table
   console.log('\nDemo Logins:');

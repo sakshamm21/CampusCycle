@@ -1898,8 +1898,13 @@ export type Database = {
         }[];
       };
       admin_run_demo_reset: { Args: never; Returns: undefined };
+      admin_run_ride_timers: { Args: never; Returns: undefined };
       admin_scan_bike: { Args: { p_payload: string }; Returns: Json };
       admin_scan_pass: { Args: { p_payload: string }; Returns: Json };
+      admin_set_app_config: {
+        Args: { p_key: string; p_value: string };
+        Returns: undefined;
+      };
       admin_setup_demo_account: {
         Args: {
           p_college: string;

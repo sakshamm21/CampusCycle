@@ -85,6 +85,6 @@ Deno.serve(async (req) => {
       .from('notifications')
       .update({ push_error: message.slice(0, 200) })
       .eq('id', notification_id);
-    return json(500, { code: 'CC_SERVER_ERROR', message });
+    return json(500, { code: 'CC_UNKNOWN', message });
   }
 });

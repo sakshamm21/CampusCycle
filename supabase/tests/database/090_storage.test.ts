@@ -1,40 +1,97 @@
-import { describe, it, expect, beforeAll } from 'vitest';
-import { adminClient, createAnonClient, createAuthenticatedClient, type SupabaseClient } from './helpers';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import {
+  adminClient,
+  createAnonClient,
+  createWorld,
+  demoSession,
+  type SupabaseClient,
+  type TestUser,
+  type World,
+} from './helpers';
+
+const BUCKETS = ['id-cards', 'return-photos', 'issue-photos', 'torq-photos'];
+const jpeg = () => new Blob(['not really a jpeg'], { type: 'image/jpeg' });
 
 describe('090: Storage Buckets and Security Policies', () => {
-  let demoRiderClient: SupabaseClient;
-  let demoRiderId: string;
+  let world: World;
+  let rider: TestUser;
+  let other: TestUser;
+  let path: string;
+
+  const canRead = async (client: SupabaseClient, bucket = 'return-photos') =>
+    (await client.storage.from(bucket).download(path)).error === null;
 
   beforeAll(async () => {
-    demoRiderClient = await createAuthenticatedClient('demo-rider@example.com');
-    const { data: user } = await demoRiderClient.auth.getUser();
-    demoRiderId = user.user!.id;
+    world = await createWorld({ riders: 2, bikes: 1 });
+    [rider, other] = world.riders;
+    path = `${rider.id}/test-${Date.now()}.jpg`;
   });
 
-  it('rider cannot upload to another user folder', async () => {
-    const dummyBlob = new Blob(['test image data'], { type: 'image/jpeg' });
-    const { error } = await demoRiderClient.storage
+  afterAll(async () => {
+    for (const bucket of BUCKETS) {
+      const { data } = await adminClient.storage.from(bucket).list(rider.id);
+      if (data?.length)
+        await adminClient.storage.from(bucket).remove(data.map((f) => `${rider.id}/${f.name}`));
+    }
+    await world?.destroy();
+  });
+
+  it('lets a rider upload into their own folder of every bucket', async () => {
+    for (const bucket of BUCKETS) {
+      const { data, error } = await rider.client.storage.from(bucket).upload(path, jpeg());
+      expect(error, bucket).toBeNull();
+      expect(data?.path, bucket).toBe(path);
+    }
+  });
+
+  it("refuses an upload into someone else's folder", async () => {
+    const theirs = `${other.id}/planted-${Date.now()}.jpg`;
+    for (const bucket of BUCKETS) {
+      const { error } = await rider.client.storage.from(bucket).upload(theirs, jpeg());
+      expect(error, bucket).not.toBeNull();
+    }
+    const { data } = await adminClient.storage.from('return-photos').list(other.id);
+    expect(data).toEqual([]);
+  });
+
+  it('refuses a file type the bucket does not allow', async () => {
+    const { error } = await rider.client.storage
       .from('return-photos')
-      .upload('00000000-0000-0000-0000-000000000000/photo.jpg', dummyBlob);
-
-    expect(error).toBeDefined();
+      .upload(`${rider.id}/notes.txt`, new Blob(['hello'], { type: 'text/plain' }));
+    expect(error).not.toBeNull();
   });
 
-  it('rider can upload to own folder', async () => {
-    const dummyBlob = new Blob(['test image data'], { type: 'image/jpeg' });
-    const fileName = `${demoRiderId}/test-${Date.now()}.jpg`;
+  it('lets the rider and the admins of their college read the photo, and nobody else', async () => {
+    expect(await canRead(rider.client)).toBe(true);
+    expect(await canRead(world.admin.client)).toBe(true);
 
-    const { data, error } = await demoRiderClient.storage.from('return-photos').upload(fileName, dummyBlob);
-    expect(error).toBeNull();
-    expect(data?.path).toBe(fileName);
-
-    // Clean up with adminClient
-    await adminClient.storage.from('return-photos').remove([fileName]);
+    expect(await canRead(other.client)).toBe(false);
+    expect(await canRead((await demoSession('admin')).client)).toBe(false);
+    expect(await canRead((await demoSession('rider')).client)).toBe(false);
   });
 
-  it('anon client cannot read private buckets', async () => {
+  it('keeps TORQ chat photos private to the rider, even from their admin', async () => {
+    expect(await canRead(rider.client, 'torq-photos')).toBe(true);
+    expect(await canRead(world.admin.client, 'torq-photos')).toBe(false);
+  });
+
+  it('gives anon nothing from any bucket', async () => {
     const anon = createAnonClient();
-    const { data } = await anon.storage.from('return-photos').list();
-    expect(data?.length || 0).toBe(0);
+    for (const bucket of BUCKETS) {
+      expect(await canRead(anon, bucket), bucket).toBe(false);
+      const { data } = await anon.storage.from(bucket).list(rider.id);
+      expect(data ?? [], bucket).toEqual([]);
+      const { error } = await anon.storage.from(bucket).upload(`${rider.id}/anon.jpg`, jpeg());
+      expect(error, bucket).not.toBeNull();
+    }
+  });
+
+  it('lets no client replace or delete a stored photo', async () => {
+    const replaced = await rider.client.storage.from('return-photos').upload(path, jpeg(), { upsert: true });
+    expect(replaced.error).not.toBeNull();
+
+    await rider.client.storage.from('return-photos').remove([path]);
+    await world.admin.client.storage.from('return-photos').remove([path]);
+    expect(await canRead(rider.client)).toBe(true);
   });
 });
