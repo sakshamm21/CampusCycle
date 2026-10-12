@@ -99,7 +99,7 @@ All workflows use `actions/checkout@v4`, `pnpm/action-setup@v4` (version from `p
 
 ### `ci.yml` (on pull_request and push to `main`)
 
-Workflow-level `concurrency: { group: hosted-project, cancel-in-progress: false }`, because the `db` and `e2e-admin` jobs share the hosted Supabase project (01 §3.4). Those jobs start with a step that writes the root `.env` from secret `DEV_ENV_FILE`, copies its `NEXT_PUBLIC_*` lines to `apps/admin/.env.local`, and sets env `SUPABASE_ACCESS_TOKEN` (secret) for the Supabase CLI (the root dev dependency).
+Workflow-level `concurrency: { group: hosted-project, cancel-in-progress: false }`, because the `db` and `e2e-admin` jobs share the dev Supabase project (01 §3.4). No workflow except `keepalive.yml`, `backup.yml` and `release.yml` ever holds a production value. Those jobs start with a step that writes the root `.env` from secret `DEV_ENV_FILE`, copies its `NEXT_PUBLIC_*` lines to `apps/admin/.env.local`, and sets env `SUPABASE_ACCESS_TOKEN` (secret) for the Supabase CLI (the root dev dependency).
 Jobs:
 
 1. `check`: `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `node scripts/sync-torq.mjs --check`.
@@ -112,7 +112,11 @@ Jobs:
 
 ### `keepalive.yml` (daily 05:00 UTC and manual)
 
-`curl -fsS -X POST "$SUPABASE_URL/rest/v1/rpc/health" -H "apikey: $SUPABASE_ANON_KEY" -H "Content-Type: application/json" -d '{}'`. Keeps the free Supabase project from pausing after a week without traffic. Secrets: `SUPABASE_URL`, `SUPABASE_ANON_KEY`. A scheduled workflow in a public repo is disabled by GitHub after 60 days without commits; `docs/setup.md` tells the owner to re-enable it from the Actions tab if that happens.
+`curl -fsS -X POST "$SUPABASE_URL/rest/v1/rpc/health" -H "apikey: $SUPABASE_ANON_KEY" -H "Content-Type: application/json" -d '{}'`. Keeps the free Supabase projects from pausing after a week without traffic: the step runs twice, once for production (secrets `SUPABASE_URL`, `SUPABASE_ANON_KEY`) and once for dev (`DEV_SUPABASE_URL`, `DEV_SUPABASE_ANON_KEY`). A scheduled workflow in a public repo is disabled by GitHub after 60 days without commits; `docs/setup.md` tells the owner to re-enable it from the Actions tab if that happens.
+
+### `backup.yml` (weekly, Sunday 20:00 UTC, and manual)
+
+The free Supabase plan keeps no backups, so this workflow is the only copy of production data outside Supabase. Steps on `ubuntu-latest`: install the PostgreSQL 17 client from the PGDG apt repository; `pg_dump "$PROD_DB_URL" --format=custom --no-owner --no-privileges --schema=public --schema=private --schema=auth --file=backup.dump`; `gpg --batch --symmetric --cipher-algo AES256 --passphrase "$BACKUP_PASSPHRASE" backup.dump`; delete the plain file; upload `backup.dump.gpg` with `actions/upload-artifact@v4` (`retention-days: 90`, name `campuscycle-backup-<date>`). The dump holds personal data and the repository becomes public, so the plain file is never uploaded and never printed. Photos in Storage are not backed up (they are deleted after 30 days anyway). Secrets: `PROD_DB_URL` (session pooler string of production), `BACKUP_PASSPHRASE`. Restore steps are in `docs/setup.md` (§9 item 8).
 
 ### `mobile-e2e.yml` (manual)
 
@@ -141,14 +145,14 @@ See §8.4.
 
 ### 8.3 Build Configuration
 
-The preview profile builds a standalone `.apk` directly without requiring Google Play Store developer accounts, FCM registration files, or production store credentials.
+The preview profile builds a standalone `.apk` without a Google Play developer account or store credentials. It does need `google-services.json` from Sak's free Firebase project (08 P5-T01), because Android delivers push through FCM: without the file the app still builds and runs, but notifications only show while it is open. iOS push needs a paid Apple developer account and stays unconfigured.
 
 ### 8.4 `release.yml`
 
 Runs on `ubuntu-latest` (EAS local builds need Linux or macOS; GitHub's runner is free for public repositories):
 
 1. Checkout, pnpm, Node, `actions/setup-java@v4` (temurin 17), `pnpm install --frozen-lockfile`.
-2. `npm i -g eas-cli`; env `EXPO_TOKEN` (secret, from the owner's free Expo account), `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EAS_PROJECT_ID`, `EAS_UPDATE_URL`.
+2. `npm i -g eas-cli`; env `EXPO_TOKEN` (secret, from the owner's free Expo account), `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EAS_PROJECT_ID`, `EAS_UPDATE_URL`, `EXPO_PUBLIC_SENTRY_DSN`, all with production values; a step before the build decodes secret `GOOGLE_SERVICES_JSON_B64` to a temp file and sets `GOOGLE_SERVICES_JSON` to its path.
 3. `cd apps/mobile && eas build --platform android --profile preview --local --non-interactive --output ../../campuscycle-<version>.apk`.
 4. `softprops/action-gh-release@v2` creates the release for the tag with `campuscycle-<version>.apk` and the notes from `docs/release-notes/<version>.md`.
 
@@ -175,3 +179,6 @@ Vercel project `campuscycle` (Hobby): root directory `apps/admin`, framework Nex
 4. AI spend: A15; OpenRouter key limits; switching to free-only models.
 5. Keep-alive job (§7) to prevent free-tier project pause.
 6. Releasing a new APK (§8).
+7. Two projects (01 §3.4): which env file is which, how a migration reaches production (`pnpm db:push:prod` after merge), and that production is never reset.
+8. Backups (§7): where the weekly artifact is, and restoring one: download, `gpg --decrypt`, `pg_restore --clean --if-exists --no-owner -d <target db url> backup.dump` into the dev project first.
+9. Crash reports: the two Sentry projects and what is never sent (08 P5-T05b).

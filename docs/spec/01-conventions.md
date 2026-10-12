@@ -192,9 +192,16 @@ Each workspace package has `typecheck` (`tsc --noEmit -p .`) and `test` scripts.
 
 ### 3.4 Supabase project and environment
 
-All backend work runs against a single hosted Supabase project on the free plan: `campuscycle` in region `ap-south-1` (Mumbai).
+The backend is two hosted Supabase projects on the free plan, both in region `ap-south-1` (Mumbai), so that tests and resets can never touch real riders:
 
-- The root `.env` holds the project credentials and keys.
+| Project                    | Env file    | Used by                                                                  | Rules                                                                                                      |
+| -------------------------- | ----------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| `campuscycle-dev` (dev)    | `.env`      | the PC, CI, database tests, Playwright, Maestro                          | may be reset at any time (`pnpm db:reset`)                                                                 |
+| `campuscycle` (production) | `.env.prod` | the three public links, the released APK, the demo accounts, real riders | never reset, never used for tests; migrations arrive only with `pnpm db:push:prod` after a merge to `main` |
+
+The build began on one project (`campuscycle`). Task P3-T00 (08 §6) creates `campuscycle-dev` and turns the first project into production with its data kept. `scripts/db.mjs` already refuses `reset`, `types` and `test` for `--target prod` and refuses everything when both env files name the same project (§6.1).
+
+- The root `.env` holds the dev project's credentials and keys; `.env.prod` (gitignored, same keys) holds production's. The Vercel projects and `release.yml` use the production values; `DEV_ENV_FILE` in GitHub secrets is the dev `.env`.
 - Next.js and Expo read env files from their own workspace, so `apps/admin/.env.local` holds the `NEXT_PUBLIC_*` lines and `apps/mobile/.env.local` holds the `EXPO_PUBLIC_*` lines (both copied from the root `.env`).
 - Database URL is the **session pooler** connection string (Project Settings → Database → Connection string → Session pooler, port 5432).
 - Edge Function secrets are set via CLI (`pnpm exec supabase secrets set`).
@@ -403,7 +410,7 @@ Usage: `node scripts/db.mjs <push|reset|types|test> [--target dev|prod]`. `dev` 
 
 ## 7. Environment variables
 
-`.env.example` (root, committed). Real values live in `.env` (gitignored, single free project):
+`.env.example` (root, committed). Real values live in `.env` (gitignored, dev project) and `.env.prod` (gitignored, production, §3.4):
 
 ```
 # Supabase (from Project Settings > API and > Database on your free campuscycle project)
@@ -447,6 +454,8 @@ Edge Function secrets (set with `pnpm exec supabase secrets set --project-ref <r
 | `ADMIN_URL`          | `https://campuscycle.vercel.app`                            | build session                                           |
 
 `SUPABASE_URL`, `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` are injected into Edge Functions by Supabase automatically.
+
+Added in Phase 5 (08 P5-T01, P5-T05b, P5-T08b): `EXPO_PUBLIC_SENTRY_DSN` and `NEXT_PUBLIC_SENTRY_DSN` in `.env.example` and both env files (public values; empty switches crash reporting off); `apps/mobile/google-services.json` from Sak's Firebase project (gitignored; in CI the GitHub secret `GOOGLE_SERVICES_JSON_B64` is decoded to a file and its path passed as `GOOGLE_SERVICES_JSON`); GitHub secrets `PROD_DB_URL` and `BACKUP_PASSPHRASE` for `backup.yml` (09 §7).
 
 The CI eval key (`OPENROUTER_EVAL_KEY`, limit US$0.50/month) is a second key Sak creates; together the two keys can never exceed US$5 a month.
 

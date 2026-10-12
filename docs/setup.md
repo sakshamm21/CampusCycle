@@ -44,7 +44,7 @@ CampusCycle/
 
 ## 3. Hosted Infrastructure
 
-CampusCycle uses a single free-tier Supabase project hosting both development and production:
+CampusCycle currently uses a single free-tier Supabase project hosting both development and production. Task P3-T00 (`docs/spec/08-phases.md`) adds a second project, `campuscycle-dev`, for development, CI and tests, and from then on this one is production only:
 
 - **Project Name:** `campuscycle`
 - **Region:** `ap-south-1` (Mumbai)
