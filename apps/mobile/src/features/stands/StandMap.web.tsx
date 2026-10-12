@@ -1,11 +1,16 @@
 import React, { useEffect, useImperativeHandle, useRef } from 'react';
 import { View } from 'react-native';
-import { Map as GlMap, Marker as GlMarker } from 'maplibre-gl';
+import { Map as GlMap, Marker as GlMarker, setWorkerUrl } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { font } from '@campuscycle/shared';
 import { toneForFree } from '@/components/StandPin';
 import { useTheme } from '@/theme/ThemeProvider';
 import { MAP_STYLES, MAP_ZOOM, type StandMapProps } from './mapTypes';
+
+// maplibre-gl normally builds its worker from its own source text, which does not survive Metro bundling.
+// The worker file is served from public/ instead (a copy of apps/mobile/node_modules/maplibre-gl/dist/maplibre-gl-worker.mjs;
+// copy it again when maplibre-gl is upgraded).
+setWorkerUrl('/maplibre-gl-worker.mjs');
 
 // The stand map in the browser: maplibre-gl with HTML markers that look like StandPin (04 R09).
 export function StandMap({

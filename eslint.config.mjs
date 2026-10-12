@@ -12,6 +12,7 @@ export default tseslint.config(
       '**/.next/**',
       '**/dist/**',
       '**/.expo/**',
+      'apps/mobile/public/**',
       'apps/mobile/android/**',
       'apps/mobile/ios/**',
       'coverage/**',

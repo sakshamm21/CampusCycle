@@ -67,6 +67,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const refresh = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: ['ctx'] });
+    // TanStack Query hands the new data to React on the next timer tick. Waiting one tick here means a
+    // caller that navigates right after `await refresh()` (Borrow → Riding) renders with the new context.
+    await new Promise((resolve) => setTimeout(resolve, 0));
   }, [queryClient]);
 
   const signOut = useCallback(async () => {

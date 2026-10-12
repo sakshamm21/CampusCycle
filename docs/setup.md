@@ -44,9 +44,21 @@ CampusCycle/
 
 ## 3. Hosted Infrastructure
 
-CampusCycle currently uses a single free-tier Supabase project hosting both development and production. Task P3-T00 (`docs/spec/08-phases.md`) adds a second project, `campuscycle-dev`, for development, CI and tests, and from then on this one is production only:
+CampusCycle runs on two free-tier Supabase projects, so tests and resets can never touch real riders:
 
-- **Project Name:** `campuscycle`
+| Project                    | Env file    | Used by                                                          | Rules                                                                         |
+| -------------------------- | ----------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `campuscycle-dev`          | `.env`      | the PC, CI (`DEV_ENV_FILE`), database tests, Playwright, Maestro | may be reset at any time with `pnpm db:reset`                                 |
+| `campuscycle` (production) | `.env.prod` | the public links, the released APK, demo accounts, real riders   | never reset, never used for tests; migrations arrive with `pnpm db:push:prod` |
+
+- After a merge to `main`, production gets new migrations with `pnpm db:push:prod` and new functions with `pnpm functions:deploy:prod`. `pnpm seed:auth:prod` is run once.
+- `scripts/db.mjs` refuses `reset`, `types` and `test` for `--target prod`, and refuses everything if `.env` names the same project as `.env.prod`.
+- The Supabase CLI on the PC is linked to the dev project. Vercel keeps the production values.
+- `apps/admin/.env.local` and `apps/mobile/.env.local` are copied from the dev `.env`.
+- Dev Edge Function secrets: `INTERNAL_SECRET` (from `.env`), `ADMIN_URL=http://localhost:3000`, `TORQ_FAKE=1`.
+
+Both projects share:
+
 - **Region:** `ap-south-1` (Mumbai)
 - **Database Engine:** PostgreSQL 17 with PostGIS, pgvector, and pg_cron
 - **Connection Mode:** Session pooler (`aws-0-ap-south-1.pooler.supabase.com:5432`)
