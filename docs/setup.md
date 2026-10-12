@@ -83,6 +83,23 @@ Local secrets reside in gitignored `.env` (monorepo root) and app-specific `.env
 
 ---
 
+### Rider app (`apps/mobile`)
+
+| Command                                                             | Action                                                                                     |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `pnpm --filter @campuscycle/mobile exec expo run:android`           | Builds the debug app, installs it on the running emulator and starts Metro.                |
+| `pnpm --filter @campuscycle/mobile web`                             | Runs the rider app in a browser.                                                           |
+| `pnpm --filter @campuscycle/mobile exec expo export --platform web` | Writes the static web build to `apps/mobile/dist` (what Vercel `campuscycle-ride` serves). |
+| `pnpm --filter @campuscycle/mobile test`                            | Runs the jest-expo unit tests (gate, pass state, photo queue, push routes).                |
+| `pnpm e2e:mobile`                                                   | Runs the Maestro flows in `e2e/mobile` against the app installed on the emulator.          |
+| `pnpm fonts`                                                        | Downloads the eleven static TrueType fonts again. The script refuses any other format.     |
+
+In a development build the route `/dev` (`campuscycle://dev`) shows every component and every Rider Pass state in the current theme. It redirects away in release builds.
+
+The Maestro flows sign in as the demo rider and one of them creates an account, so they must only ever run against the dev project (`apps/mobile/.env.local` copied from the dev `.env`).
+
+---
+
 ## 5. Continuous Deployment & Releases
 
 Both web projects are connected directly to the GitHub repository:
