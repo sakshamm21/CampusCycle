@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
 import QRCode from 'qrcode';
 import {
   Bike,
@@ -37,19 +36,36 @@ interface QrSample {
 
 export default function TryPage() {
   const router = useRouter();
+  const [samples, setSamples] = useState<QrSample[]>([]);
+  const [samplesLoading, setSamplesLoading] = useState(true);
   const [showAllQrs, setShowAllQrs] = useState(false);
   const [qrImages, setQrImages] = useState<Record<string, string>>({});
   const [signingInRole, setSigningInRole] = useState<string | null>(null);
 
   // 1. Fetch sample bike QRs from RPC demo_qr_samples (publicly callable)
-  const { data: samples = [], isLoading: samplesLoading } = useQuery({
-    queryKey: ['demo-qr-samples'],
-    queryFn: async (): Promise<QrSample[]> => {
-      const { data, error } = await supabase.rpc('demo_qr_samples');
-      if (error) throw error;
-      return (data ?? []) as QrSample[];
-    },
-  });
+  useEffect(() => {
+    let active = true;
+
+    async function loadSamples() {
+      try {
+        const { data, error } = await supabase.rpc('demo_qr_samples');
+        if (active) {
+          if (!error && data) {
+            setSamples(data as QrSample[]);
+          }
+          setSamplesLoading(false);
+        }
+      } catch (err) {
+        console.error('Failed to load demo QR samples:', err);
+        if (active) setSamplesLoading(false);
+      }
+    }
+
+    loadSamples();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // 2. Generate QR code images client-side
   useEffect(() => {
