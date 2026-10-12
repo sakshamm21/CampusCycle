@@ -14,11 +14,23 @@ export interface PhotoThumbProps {
   path: string | null;
   alt?: string;
   size?: number;
+  width?: number;
+  height?: number;
   className?: string;
 }
 
-export function PhotoThumb({ bucket, path, alt = 'Photo', size = 48, className = '' }: PhotoThumbProps) {
+export function PhotoThumb({
+  bucket,
+  path,
+  alt = 'Photo',
+  size = 48,
+  width,
+  height,
+  className = '',
+}: PhotoThumbProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const w = width ?? size;
+  const h = height ?? size;
 
   const { data: url, isLoading } = useQuery({
     queryKey: ['photo', bucket, path],
@@ -33,7 +45,7 @@ export function PhotoThumb({ bucket, path, alt = 'Photo', size = 48, className =
   if (!path) {
     return (
       <div
-        style={{ width: size, height: size }}
+        style={{ width: w, height: h }}
         className={cn(
           'rounded-[8px] border border-border bg-surface2/50 flex items-center justify-center text-muted/60',
           className,
@@ -49,7 +61,7 @@ export function PhotoThumb({ bucket, path, alt = 'Photo', size = 48, className =
       <button
         type="button"
         onClick={() => setLightboxOpen(true)}
-        style={{ width: size, height: size }}
+        style={{ width: w, height: h }}
         aria-label={`View ${alt}`}
         className={cn(
           'relative rounded-[8px] overflow-hidden border border-border bg-surface2 shrink-0 group hover:ring-2 hover:ring-primary/60 transition-all cursor-pointer',
@@ -65,7 +77,7 @@ export function PhotoThumb({ bucket, path, alt = 'Photo', size = 48, className =
             src={url}
             alt={alt}
             fill
-            sizes={`${size}px`}
+            sizes={`${w}px`}
             className="object-cover group-hover:scale-105 transition-transform"
           />
         ) : (

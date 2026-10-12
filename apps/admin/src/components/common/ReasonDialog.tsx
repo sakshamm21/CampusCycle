@@ -27,6 +27,7 @@ export interface ReasonDialogProps {
   cancelLabel?: string;
   destructive?: boolean;
   minChars?: number;
+  quickPickChips?: string[];
   onConfirm: (reason: string) => Promise<void> | void;
 }
 
@@ -42,6 +43,7 @@ export function ReasonDialog({
   cancelLabel = en.common.cancel,
   destructive = false,
   minChars = 3,
+  quickPickChips,
   onConfirm,
 }: ReasonDialogProps) {
   const [reason, setReason] = useState('');
@@ -94,6 +96,20 @@ export function ReasonDialog({
             rows={3}
             className="text-xs bg-surface2/60 border-border resize-none"
           />
+          {quickPickChips && quickPickChips.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {quickPickChips.map((chip, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setReason(chip)}
+                  className="text-[11px] font-mono px-2 py-0.5 rounded-full border border-border bg-surface2/60 hover:bg-surface2 text-muted hover:text-fg transition-colors text-left cursor-pointer"
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+          )}
           {reason.length > 0 && !isReasonValid && (
             <span className="text-[11px] text-bad font-mono">
               Reason must be at least {minChars} characters
