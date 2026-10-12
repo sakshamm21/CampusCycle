@@ -18,6 +18,8 @@ export const en = {
     yes: 'Yes',
     no: 'No',
     demo_banner: 'Demo mode · Skipping GPS checks · Resets nightly at 4:00 AM IST',
+    demo_banner_admin:
+      'Demo mode · resets every night at 4:00 AM IST · real people and settings are read-only',
     super_admin: 'Super Admin',
     college_admin: 'College Admin',
     rider: 'Rider',
