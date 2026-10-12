@@ -106,7 +106,7 @@ jobs:
           # Deploying needs the access token (08 P1-T20). Without it the functions already on the
           # project are used; the admin suite calls none of them.
           if [ -n "$SUPABASE_ACCESS_TOKEN" ]; then
-            pnpm functions:deploy
+            pnpm functions:deploy || echo "::warning::Edge Function redeploy failed, the functions already on the dev project are used"
           else
             echo "::warning::SUPABASE_ACCESS_TOKEN is not set, Edge Functions were not redeployed"
           fi
