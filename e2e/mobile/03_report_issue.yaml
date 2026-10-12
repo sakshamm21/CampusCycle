@@ -1,0 +1,23 @@
+# Report a flat tyre from a stand, without a photo (09 §5).
+appId: com.sakshamm21.campuscycle
+---
+- runFlow: 01_demo_login.yaml
+- tapOn:
+    id: 'dock.map'
+- tapOn:
+    id: 'r09.list'
+- tapOn:
+    id: 'r09.stand.0'
+- tapOn:
+    id: 'r10.report'
+- tapOn:
+    id: 'r16.types.flat_tyre'
+- tapOn:
+    id: 'r16.note'
+- inputText: 'Front tyre is flat'
+- hideKeyboard
+- tapOn:
+    id: 'r16.send'
+- extendedWaitUntil:
+    visible: 'Thanks. Your admin can see it now.'
+    timeout: 30000

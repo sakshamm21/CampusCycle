@@ -1,0 +1,25 @@
+# Switch to the Day theme from Profile and check the selection sticks on Home and back (09 §5).
+appId: com.sakshamm21.campuscycle
+---
+- runFlow: 01_demo_login.yaml
+- tapOn:
+    id: 'dock.profile'
+- scrollUntilVisible:
+    element:
+      id: 'r19.day'
+- tapOn:
+    id: 'r19.day'
+- assertVisible:
+    id: 'r19.day'
+    selected: true
+- tapOn:
+    id: 'dock.home'
+- assertVisible: 'hey aanya'
+- tapOn:
+    id: 'dock.profile'
+- scrollUntilVisible:
+    element:
+      id: 'r19.day'
+- assertVisible:
+    id: 'r19.day'
+    selected: true

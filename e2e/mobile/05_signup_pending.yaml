@@ -1,0 +1,53 @@
+# Sign up with a fresh email through the four steps and land on Pending (09 §5).
+appId: com.sakshamm21.campuscycle
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    id: 'r01.sign_up'
+- tapOn:
+    id: 'r04.full_name'
+- inputText: 'Maestro Rider'
+- tapOn:
+    id: 'r04.phone'
+- inputText: '9000012345'
+- tapOn:
+    id: 'r04.roll'
+- inputText: 'M2026'
+- hideKeyboard
+- tapOn:
+    id: 'r04.next'
+- tapOn:
+    id: 'r04.email'
+- inputRandomEmail
+- tapOn:
+    id: 'r04.password'
+- inputText: 'maestro-pass-2026'
+- tapOn:
+    id: 'r04.confirm'
+- inputText: 'maestro-pass-2026'
+- hideKeyboard
+- tapOn:
+    id: 'r04.next'
+- tapOn:
+    id: 'r04.college.IITK'
+- tapOn:
+    id: 'r04.next'
+- scrollUntilVisible:
+    element:
+      id: 'r04.rules_accept'
+- tapOn:
+    id: 'r04.rules_accept'
+- tapOn:
+    id: 'r04.submit'
+- extendedWaitUntil:
+    visible:
+      id: 'r05.continue'
+    timeout: 30000
+- tapOn:
+    id: 'r05.continue'
+- extendedWaitUntil:
+    visible:
+      id: 'r06.pass'
+    timeout: 30000
+- assertVisible: '.*AWAITING APPROVAL.*'

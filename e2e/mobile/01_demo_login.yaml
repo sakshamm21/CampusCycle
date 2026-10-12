@@ -1,0 +1,17 @@
+# Demo login: Welcome → demo rider → Permissions → Home with the pass (09 §5).
+appId: com.sakshamm21.campuscycle
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    id: 'r01.demo'
+- extendedWaitUntil:
+    visible:
+      id: 'r05.continue'
+    timeout: 30000
+- tapOn:
+    id: 'r05.continue'
+- extendedWaitUntil:
+    visible: 'hey aanya'
+    timeout: 30000
+- assertVisible: '.*IITK · 0421.*'
