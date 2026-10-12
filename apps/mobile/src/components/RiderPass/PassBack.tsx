@@ -17,7 +17,9 @@ export function PassBack({ pass, u, colors, now }: Props) {
   const { stats, qr, state } = pass;
   const noQr = state === 'pending' || state === 'suspended';
   const left = qrSecondsLeft(qr?.expiresAt, now);
-  const qrSize = 38 * u - 4 * u;
+  // The square that fits between the header and the stats row of a 63u-high card.
+  const box = 26 * u;
+  const qrSize = box - 4 * u;
 
   const mono = (size: number, extra?: TextStyle): TextStyle => ({
     fontFamily: font.monoMedium,
@@ -77,10 +79,8 @@ export function PassBack({ pass, u, colors, now }: Props) {
       <View style={{ flex: 1, flexDirection: 'row', gap: 5 * u }}>
         <View
           style={{
-            width: 38 * u,
-            height: 38 * u,
-            maxHeight: '100%',
-            aspectRatio: 1,
+            width: box,
+            height: box,
             borderRadius: 3 * u,
             padding: 2 * u,
             backgroundColor: '#FFFFFF',

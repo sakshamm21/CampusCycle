@@ -170,7 +170,7 @@ export function RiderPass(props: RiderPassProps) {
                 {!noQr && props.qr ? (
                   <QRCode
                     value={props.qr.payload}
-                    size={width * 0.34}
+                    size={width * 0.22}
                     ecl="M"
                     color={palette.sticker.ink}
                     backgroundColor="#FFFFFF"

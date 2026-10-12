@@ -453,7 +453,7 @@
   inset: 0;
   padding: 5.5cqw 6.5cqw;
   display: grid;
-  grid-template-columns: 38cqw minmax(0, 1fr);
+  grid-template-columns: 26cqw minmax(0, 1fr);
   grid-template-rows: auto 1fr auto;
   gap: 2.6cqw 5cqw;
 }
