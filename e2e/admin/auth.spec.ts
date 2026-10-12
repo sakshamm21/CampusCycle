@@ -1,33 +1,35 @@
 import { test, expect } from '@playwright/test';
-import { DEMO_EMAILS, DEMO_PASSWORD } from '@campuscycle/shared';
+import { DEMO_EMAILS, DEMO_PASSWORD, en } from '@campuscycle/shared';
 
-test.describe('Admin Authentication Flow', () => {
-  test('refuses rider credentials with CC_NOT_ADMIN copy', async ({ page }) => {
+test.describe('A01 sign in', () => {
+  test('refuses rider credentials with the CC_NOT_ADMIN copy', async ({ page }) => {
     await page.goto('/sign-in');
+    await page.locator('input#email').fill(DEMO_EMAILS.rider);
+    await page.locator('input#password').fill(DEMO_PASSWORD);
+    await page.getByRole('button', { name: 'Sign in', exact: true }).click();
 
-    await page.fill('input#email', DEMO_EMAILS.rider);
-    await page.fill('input#password', DEMO_PASSWORD);
-    await page.click('button[type="submit"]');
+    await expect(page.getByRole('alert').filter({ hasText: en.errors.CC_NOT_ADMIN })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page).toHaveURL(/\/sign-in/);
 
-    // Should display non-admin error
-    await expect(page.locator('text=This site is for college admins')).toBeVisible({ timeout: 10_000 });
+    // the refused session is gone: the app is still closed
+    await page.goto('/dashboard');
+    await expect(page).toHaveURL(/\/sign-in/);
   });
 
-  test('signs in as demo admin, displays demo banner, and signs out', async ({ page }) => {
+  test('demo admin button lands on the dashboard with the demo banner, then signs out', async ({ page }) => {
     await page.goto('/sign-in');
+    await page.getByRole('button', { name: en.a01.demo_admin }).click();
 
-    // Click demo admin button
-    await page.click('button:has-text("Demo college admin")');
+    await page.waitForURL('**/dashboard', { timeout: 30_000 });
+    await expect(page.getByText(en.common.demo_banner_admin)).toBeVisible();
 
-    // Lands on dashboard
-    await page.waitForURL('**/dashboard', { timeout: 15_000 });
-    await expect(page.locator('text=Demo mode')).toBeVisible();
-
-    // Navigate to account and sign out
     await page.goto('/account');
-    await page.click('button:has-text("Sign out")');
+    await page.getByRole('button', { name: en.a18.sign_out }).click();
+    await page.waitForURL('**/sign-in', { timeout: 15_000 });
 
-    // Should land back on sign-in
-    await page.waitForURL('**/sign-in', { timeout: 10_000 });
+    await page.goto('/dashboard');
+    await expect(page).toHaveURL(/\/sign-in/);
   });
 });

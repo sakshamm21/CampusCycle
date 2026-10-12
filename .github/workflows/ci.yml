@@ -103,7 +103,13 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           pnpm db:reset
-          pnpm functions:deploy
+          # Deploying needs the access token (08 P1-T20). Without it the functions already on the
+          # project are used; the admin suite calls none of them.
+          if [ -n "$SUPABASE_ACCESS_TOKEN" ]; then
+            pnpm functions:deploy
+          else
+            echo "::warning::SUPABASE_ACCESS_TOKEN is not set, Edge Functions were not redeployed"
+          fi
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium

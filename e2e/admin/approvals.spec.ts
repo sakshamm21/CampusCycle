@@ -1,61 +1,44 @@
-import { test, expect } from '@playwright/test';
-import { DEMO_EMAILS, DEMO_PASSWORD } from '@campuscycle/shared';
+import { test, expect, type Page } from '@playwright/test';
+import { en } from '@campuscycle/shared';
+import { expectToast, signInAsDemoAdmin } from './helpers';
 
-test.describe('Approvals Queue Flow', () => {
-  test.beforeEach(async ({ page }) => {
-    // Sign in as demo college admin
-    await page.goto('/sign-in');
-    await page.fill('input#email', DEMO_EMAILS.college_admin);
-    await page.fill('input#password', DEMO_PASSWORD);
-    await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard', { timeout: 15_000 });
-  });
+function card(page: Page, name: string) {
+  return page.locator('div.rounded-card').filter({ has: page.getByLabel(`Select ${name}`) });
+}
 
-  test('manages approvals queue: mismatch, rejection, single and bulk approval', async ({ page }) => {
+test.describe('A03 approvals', () => {
+  test('mismatch chip, reject with a quick reason, approve one, bulk approve the rest', async ({ page }) => {
+    await signInAsDemoAdmin(page);
     await page.goto('/approvals');
 
-    // 1. Check applicants presence
-    await expect(page.locator('text=Rohan Verma')).toBeVisible({ timeout: 10_000 });
-    // Check mismatch chip
-    await expect(page.locator('text=ID MISMATCH')).toBeVisible();
+    // the four seeded applicants
+    const checkboxes = page.getByLabel(/^Select /);
+    await expect(checkboxes).toHaveCount(4, { timeout: 15_000 });
 
-    // 2. Reject Rohan Verma with quick pick reason
-    const rohanCard = page.locator('div:has-text("Rohan Verma")').last();
-    await rohanCard.locator('button:has-text("Reject")').click();
+    const rohan = card(page, 'Rohan Verma');
+    await expect(rohan.getByText('ID MISMATCH')).toBeVisible();
+    await expect(rohan.getByText(/Rohit Verma/)).toBeVisible();
 
-    // Reason dialog appears
-    await expect(page.locator('text=Reject Rohan Verma?')).toBeVisible();
-    // Click first quick-pick reason chip
-    const reasonChip = page.locator('button:has-text("Photo unreadable")');
-    if (await reasonChip.isVisible()) {
-      await reasonChip.click();
-    } else {
-      // Pick first available chip
-      await page.locator('div[role="dialog"] button.rounded-full').first().click();
-    }
-    // Confirm rejection
-    await page.locator('div[role="dialog"] button:has-text("Reject")').click();
-    await expect(page.locator('text=Rejected application')).toBeVisible();
+    // reject with a quick-pick reason
+    await rohan.getByRole('button', { name: en.a03.reject }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog.getByText('Reject Rohan Verma?')).toBeVisible();
+    await dialog.getByRole('button', { name: en.a03.reasons[1] }).click();
+    await expect(dialog.locator('#dialog-reason')).toHaveValue(en.a03.reasons[1]);
+    await dialog.getByRole('button', { name: en.a03.reject, exact: true }).click();
+    await expect(checkboxes).toHaveCount(3, { timeout: 15_000 });
+    await expect(card(page, 'Rohan Verma')).toHaveCount(0);
 
-    // 3. Approve one applicant
-    const firstApplicant = page.locator('button:has-text("Approve")').first();
-    await firstApplicant.click();
-    await expect(page.locator('text=Approved and issued pass')).toBeVisible();
+    // approve one
+    await card(page, 'Ishaan Gupta').getByRole('button', { name: en.a03.approve, exact: true }).click();
+    await expect(checkboxes).toHaveCount(2, { timeout: 15_000 });
 
-    // 4. Bulk approve remaining applicants
-    const selectAllCheckbox = page.locator('input[type="checkbox"]').first();
-    if (await selectAllCheckbox.isVisible()) {
-      await selectAllCheckbox.click();
-      const approveSelectedBtn = page.locator('button:has-text("Approve selected")');
-      if (await approveSelectedBtn.isVisible()) {
-        await approveSelectedBtn.click();
-        await page.locator('div[role="dialog"] button:has-text("Approve")').click();
-      }
-    }
+    // bulk approve the rest
+    await page.getByRole('button', { name: 'Select all visible' }).click();
+    await page.getByRole('button', { name: `${en.a03.approve_selected} (2)` }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Approve', exact: true }).click();
+    await expectToast(page, '2 riders approved');
 
-    // 5. Verify queue empty state or count decrement
-    await expect(page.locator('text=no pending').or(page.locator('text=Approved'))).toBeVisible({
-      timeout: 10_000,
-    });
+    await expect(page.getByText(en.a03.empty)).toBeVisible({ timeout: 15_000 });
   });
 });

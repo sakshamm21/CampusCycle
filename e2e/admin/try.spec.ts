@@ -1,27 +1,32 @@
 import { test, expect } from '@playwright/test';
+import { en } from '@campuscycle/shared';
 
-test.describe('Public Demo Share Page (/try)', () => {
-  test('renders signed-out with 6 QR tiles and working navigation links', async ({ page }) => {
-    // Navigate signed out
+test.describe('/try', () => {
+  test('signed out: 6 QR tiles and working links', async ({ page }) => {
     await page.goto('/try');
+    await expect(page).toHaveURL(/\/try$/);
 
-    // 1. Check hero title and lede
-    await expect(page.locator('text=campuscycle')).toBeVisible();
-    await expect(page.locator('text=Ride it')).toBeVisible();
-    await expect(page.locator('text=Run it')).toBeVisible();
-    await expect(page.locator('text=Scan it')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('campuscycle');
+    await expect(page.getByText(en.try.lede)).toBeVisible();
 
-    // 2. Verify sample QR stickers section
-    await expect(page.locator('text=sample bicycle qr stickers')).toBeVisible();
+    const tiles = page.locator('img[alt*="QR Code for bike"]');
+    await expect(tiles).toHaveCount(6, { timeout: 20_000 });
 
-    // Wait for QR images to render
-    const qrImages = page.locator('img[alt*="QR Code for bike"]');
-    await expect(qrImages.first()).toBeVisible({ timeout: 15_000 });
-    const count = await qrImages.count();
-    expect(count).toBeGreaterThanOrEqual(6);
+    await expect(page.getByRole('link', { name: /Download for Android/ })).toHaveAttribute(
+      'href',
+      'https://github.com/sakshamm21/CampusCycle/releases/latest',
+    );
+    await expect(page.getByText(en.try.reset)).toBeVisible();
 
-    // 3. Verify footer links
-    await expect(page.locator('a:has-text("Privacy Policy")')).toBeVisible();
-    await expect(page.locator('a:has-text("Delete Account")')).toBeVisible();
+    await page.getByRole('link', { name: /Privacy/ }).click();
+    await expect(page).toHaveURL(/\/privacy$/);
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  });
+
+  test('one-click demo college admin signs in', async ({ page }) => {
+    await page.goto('/try');
+    await page.getByRole('button', { name: en.a01.demo_admin }).click();
+    await page.waitForURL('**/dashboard', { timeout: 30_000 });
+    await expect(page.getByText(en.common.demo_banner_admin)).toBeVisible();
   });
 });
