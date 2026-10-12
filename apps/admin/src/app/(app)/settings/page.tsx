@@ -295,14 +295,16 @@ export default function CollegeSettingsPage() {
               id="max-ride"
               type="number"
               min={15}
-              max={240}
+              max={1440}
               step={15}
               value={maxRideMinutes}
               onChange={(e) => setMaxRideMinutes(parseInt(e.target.value, 10) || 15)}
               required
               className="h-9 text-xs font-mono bg-surface2 border-border"
             />
-            <p className="text-[11px] font-mono text-muted">15 to 240 mins (step 15)</p>
+            <p className="text-[11px] font-mono text-muted">
+              15 to 1440 mins · {Number((maxRideMinutes / 60).toFixed(2))} h
+            </p>
           </div>
 
           {/* Strikes before pass paused */}

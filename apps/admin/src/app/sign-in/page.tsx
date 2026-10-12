@@ -36,8 +36,7 @@ function SignInForm() {
 
     if (ctxError || !ctx || ctx.profile?.role === 'rider' || ctx.profile?.status !== 'approved') {
       await supabase.auth.signOut();
-      const notAdminErr = toAppError('CC_NOT_ADMIN');
-      setErrorMsg(messageFor(notAdminErr.code));
+      setErrorMsg(messageFor('CC_NOT_ADMIN'));
       return;
     }
 

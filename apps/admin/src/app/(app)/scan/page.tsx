@@ -194,9 +194,10 @@ export default function ScanPage() {
     if (parsed.kind === 'bike') {
       payload = raw;
     } else {
+      // A typed code goes as the bare code: admin_scan_bike (02 §12) answers `signed: false` for it
       const normalized = normalizeCode(raw);
       if (normalized) {
-        payload = `campuscycle://b/${normalized}?s=`;
+        payload = normalized;
       }
     }
 

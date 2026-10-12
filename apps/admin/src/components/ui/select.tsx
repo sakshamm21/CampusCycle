@@ -5,7 +5,39 @@ import { Select as SelectPrimitive } from '@base-ui/react/select';
 import { cn } from 'cn';
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from 'lucide-react';
 
-const Select = SelectPrimitive.Root;
+type SelectOption = { value: unknown; label: React.ReactNode };
+
+function collectOptions(node: React.ReactNode, out: SelectOption[]) {
+  React.Children.forEach(node, (child) => {
+    if (!React.isValidElement(child)) return;
+    const props = child.props as { value?: unknown; children?: React.ReactNode };
+    if (child.type === SelectItem) {
+      out.push({ value: props.value, label: props.children });
+    } else if (props.children) {
+      collectOptions(props.children, out);
+    }
+  });
+}
+
+// Base UI shows the raw value in the trigger unless the root knows the labels, and the items
+// are not mounted while the popup is closed. So the labels are read from the SelectItem children.
+function Select<Value, Multiple extends boolean | undefined = false>({
+  items,
+  children,
+  ...props
+}: SelectPrimitive.Root.Props<Value, Multiple>) {
+  let options = items;
+  if (!options) {
+    const found: SelectOption[] = [];
+    collectOptions(children, found);
+    options = found;
+  }
+  return (
+    <SelectPrimitive.Root items={options} {...props}>
+      {children}
+    </SelectPrimitive.Root>
+  );
+}
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (

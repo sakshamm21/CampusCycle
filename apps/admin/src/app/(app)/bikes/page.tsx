@@ -304,10 +304,17 @@ function BikesPageContent() {
     setAddLoading(true);
     try {
       const res = await createBikes(supabase, collegeId, addStandId, addCount, addNotes.trim());
+      // The labels page takes bike ids (05 A09), the RPC answers codes
+      const { data: created } = await supabase
+        .from('bikes')
+        .select('id')
+        .eq('college_id', collegeId)
+        .in('short_code', res.codes);
+      const ids = (created ?? []).map((b) => b.id).join(',');
       toast.success(t('a08.added', { codes: res.codes.join(', ') }), {
         action: {
           label: en.a08.print,
-          onClick: () => router.push('/bikes/labels'),
+          onClick: () => router.push(ids ? `/bikes/labels?ids=${ids}` : '/bikes/labels'),
         },
         duration: 8000,
       });

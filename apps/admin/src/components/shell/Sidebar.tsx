@@ -139,7 +139,7 @@ export function Sidebar({ ctx, onNavigate }: { ctx: MyContext; onNavigate?: () =
   return (
     <aside className="w-full lg:w-[248px] h-full flex flex-col justify-between bg-surface border-r border-border p-4 select-none">
       {/* Top section: Wordmark + College switcher */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 flex-1 min-h-0">
         <div className="flex items-center justify-between px-2 pt-1">
           <Link
             href="/dashboard"
@@ -163,7 +163,7 @@ export function Sidebar({ ctx, onNavigate }: { ctx: MyContext; onNavigate?: () =
         </div>
 
         {/* Nav groups */}
-        <nav className="flex flex-col gap-5 mt-1 overflow-y-auto max-h-[calc(100vh-250px)] pr-1">
+        <nav className="flex flex-col gap-5 mt-1 flex-1 min-h-0 overflow-y-auto pr-1">
           {NAV_GROUPS.map((group) => {
             const filteredItems = group.items.filter((item) => !item.superAdminOnly || isSuperAdmin);
             if (filteredItems.length === 0) return null;

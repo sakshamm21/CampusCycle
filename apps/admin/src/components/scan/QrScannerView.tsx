@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { ArrowRight } from 'lucide-react';
 import type QrScanner from 'qr-scanner';
+import { AppError } from '@campuscycle/shared';
 import { cn } from '@/lib/utils';
 import { ErrorState } from '@/components/common/ErrorState';
 import { Button } from '@/components/ui/button';
@@ -108,7 +109,7 @@ export function QrScannerView({
         {cameraDenied ? (
           <div className="w-full h-full p-6 flex items-center justify-center bg-surface">
             <ErrorState
-              error={{ code: 'CC_CAMERA_DENIED' }}
+              error={new AppError('CC_CAMERA_DENIED')}
               onRetry={initScanner}
               className="border-0 bg-transparent py-4"
             />
