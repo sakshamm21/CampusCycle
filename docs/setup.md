@@ -44,9 +44,21 @@ CampusCycle/
 
 ## 3. Hosted Infrastructure
 
-CampusCycle uses a single free-tier Supabase project hosting both development and production:
+CampusCycle runs on two free-tier Supabase projects, so tests and resets can never touch real riders:
 
-- **Project Name:** `campuscycle`
+| Project                    | Env file    | Used by                                                          | Rules                                                                         |
+| -------------------------- | ----------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `campuscycle-dev`          | `.env`      | the PC, CI (`DEV_ENV_FILE`), database tests, Playwright, Maestro | may be reset at any time with `pnpm db:reset`                                 |
+| `campuscycle` (production) | `.env.prod` | the public links, the released APK, demo accounts, real riders   | never reset, never used for tests; migrations arrive with `pnpm db:push:prod` |
+
+- After a merge to `main`, production gets new migrations with `pnpm db:push:prod` and new functions with `pnpm functions:deploy:prod`. `pnpm seed:auth:prod` is run once.
+- `scripts/db.mjs` refuses `reset`, `types` and `test` for `--target prod`, and refuses everything if `.env` names the same project as `.env.prod`.
+- The Supabase CLI on the PC is linked to the dev project. Vercel keeps the production values.
+- `apps/admin/.env.local` and `apps/mobile/.env.local` are copied from the dev `.env`.
+- Dev Edge Function secrets: `INTERNAL_SECRET` (from `.env`), `ADMIN_URL=http://localhost:3000`, `TORQ_FAKE=1`.
+
+Both projects share:
+
 - **Region:** `ap-south-1` (Mumbai)
 - **Database Engine:** PostgreSQL 17 with PostGIS, pgvector, and pg_cron
 - **Connection Mode:** Session pooler (`aws-0-ap-south-1.pooler.supabase.com:5432`)
@@ -80,6 +92,23 @@ Local secrets reside in gitignored `.env` (monorepo root) and app-specific `.env
 | `pnpm db:types`         | Generates TypeScript definitions from the live Supabase schema into `@campuscycle/shared`. |
 | `pnpm torq:sync`        | Syncs TORQ and shared modules into Supabase Edge Functions vendor directory.               |
 | `pnpm functions:deploy` | Deploys all Edge Functions to the hosted project.                                          |
+
+---
+
+### Rider app (`apps/mobile`)
+
+| Command                                                             | Action                                                                                     |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `pnpm --filter @campuscycle/mobile exec expo run:android`           | Builds the debug app, installs it on the running emulator and starts Metro.                |
+| `pnpm --filter @campuscycle/mobile web`                             | Runs the rider app in a browser.                                                           |
+| `pnpm --filter @campuscycle/mobile exec expo export --platform web` | Writes the static web build to `apps/mobile/dist` (what Vercel `campuscycle-ride` serves). |
+| `pnpm --filter @campuscycle/mobile test`                            | Runs the jest-expo unit tests (gate, pass state, photo queue, push routes).                |
+| `pnpm e2e:mobile`                                                   | Runs the Maestro flows in `e2e/mobile` against the app installed on the emulator.          |
+| `pnpm fonts`                                                        | Downloads the eleven static TrueType fonts again. The script refuses any other format.     |
+
+In a development build the route `/dev` (`campuscycle://dev`) shows every component and every Rider Pass state in the current theme. It redirects away in release builds.
+
+The Maestro flows sign in as the demo rider and one of them creates an account, so they must only ever run against the dev project (`apps/mobile/.env.local` copied from the dev `.env`).
 
 ---
 

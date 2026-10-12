@@ -9,6 +9,10 @@ import {
   passLabel,
   finishFor,
   relativeTime,
+  formatDay,
+  formatMonth,
+  formatRideClock,
+  nextFinish,
 } from '../src/format.ts';
 
 describe('formatDistance', () => {
@@ -118,5 +122,34 @@ describe('relativeTime', () => {
     expect(relativeTime('2026-10-11T11:59:30Z', now)).toBe('just now');
     expect(relativeTime('2026-10-11T11:55:00Z', now)).toBe('5 min ago');
     expect(relativeTime('2026-10-11T10:00:00Z', now)).toBe('2 h ago');
+  });
+});
+
+describe('formatDay and formatMonth', () => {
+  it('use the college time zone, not UTC', () => {
+    // 20:00 UTC on 31 Oct is already 1 Nov in India.
+    expect(formatDay('2026-10-31T20:00:00Z', 'Asia/Kolkata')).toBe('1 Nov');
+    expect(formatMonth('2026-10-31T20:00:00Z', 'Asia/Kolkata')).toBe('Nov 2026');
+    expect(formatMonth('2026-10-31T20:00:00Z', 'UTC')).toBe('Oct 2026');
+  });
+});
+
+describe('formatRideClock', () => {
+  it('shows mm:ss under an hour and h:mm from an hour on', () => {
+    expect(formatRideClock(0)).toBe('00:00');
+    expect(formatRideClock(23 * 60_000 + 5_000)).toBe('23:05');
+    expect(formatRideClock(59 * 60_000 + 59_000)).toBe('59:59');
+    expect(formatRideClock(60 * 60_000)).toBe('1:00');
+    expect(formatRideClock(125 * 60_000 + 40_000)).toBe('2:05');
+  });
+});
+
+describe('nextFinish', () => {
+  it('counts rides to the next threshold', () => {
+    expect(nextFinish(0)).toEqual({ next: 'chrome', ridesToNext: 10 });
+    expect(nextFinish(7)).toEqual({ next: 'chrome', ridesToNext: 3 });
+    expect(nextFinish(10)).toEqual({ next: 'holo', ridesToNext: 40 });
+    expect(nextFinish(49)).toEqual({ next: 'holo', ridesToNext: 1 });
+    expect(nextFinish(50)).toEqual({ next: null, ridesToNext: 0 });
   });
 });

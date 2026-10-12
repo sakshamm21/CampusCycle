@@ -26,7 +26,16 @@ const FONTS = [
   { family: 'Martian+Mono:wght@700', file: 'MartianMono-Bold.ttf' },
 ];
 
-const USER_AGENT = 'Mozilla/4.0 (compatible; MSIE 8.0)';
+// An old Android browser: Google Fonts answers it with one static TrueType file per request.
+// (The MSIE 8 agent gets EOT files, which neither Android nor a modern browser can load.)
+const USER_AGENT =
+  'Mozilla/5.0 (Linux; U; Android 4.0.3; en-us) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30';
+
+// TrueType starts with 00 01 00 00 (or the tag true); OpenType with OTTO.
+function isSfnt(buffer) {
+  const tag = buffer.subarray(0, 4).toString('latin1');
+  return buffer.readUInt32BE(0) === 0x00010000 || tag === 'true' || tag === 'OTTO';
+}
 
 async function downloadFont(item) {
   const cssUrl = `https://fonts.googleapis.com/css2?family=${item.family}`;
@@ -65,6 +74,9 @@ async function downloadFont(item) {
 
   const arrayBuffer = await fontRes.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
+  if (!isSfnt(buffer)) {
+    throw new Error(`${item.file}: the download is not a TrueType or OpenType font`);
+  }
   const targetPath = path.join(outDir, item.file);
   fs.writeFileSync(targetPath, buffer);
   const adminTargetPath = path.join(adminOutDir, item.file);

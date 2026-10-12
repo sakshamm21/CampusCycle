@@ -82,16 +82,22 @@ Every product requirement in `plan.md`, with the spec sections that implement it
 
 ## 5. Platform, cost and delivery
 
-| Requirement                                                                 | Implemented in                       |
-| --------------------------------------------------------------------------- | ------------------------------------ |
-| Expo rider app, Next.js admin, Supabase backend (SQL, not a document store) | 01 §2–§5; 02                         |
-| Free tiers everywhere; only spend is OpenRouter credits                     | plan §3; 09 §7–§8                    |
-| Fresh Supabase project created in Phase 0                                   | 08 P0-T09                            |
-| Repo `github.com/sakshamm21/CampusCycle`, public at release                 | 01 §1; 08 P6-T07                     |
-| Every commit authored as Sak with no Claude lines                           | 01 §1 (`commit-msg` hook); 08 P0-T02 |
-| Admin site on Vercel from GitHub with Sak's account                         | 09 §8.6; 08 P0-T09                   |
-| APK on GitHub Releases plus a store-ready bundle; store fees not paid       | 09 §8                                |
-| Keep-alive so the free project never pauses                                 | 09 §7 (`keepalive.yml`)              |
-| Build runs on Sak's PC via Remote Control in the CampusCycle folder         | 08 §1; START-HERE                    |
-| Building starts only after Sak says go                                      | START-HERE; 08 §2                    |
-| OpenRouter key entered by Sak, never in chat or the repo                    | 01 §7; 08 P4-T01                     |
+| Requirement                                                                      | Implemented in                       |
+| -------------------------------------------------------------------------------- | ------------------------------------ |
+| Expo rider app, Next.js admin, Supabase backend (SQL, not a document store)      | 01 §2–§5; 02                         |
+| Free tiers everywhere; only spend is OpenRouter credits                          | plan §3; 09 §7–§8                    |
+| Fresh Supabase project created in Phase 0                                        | 08 P0-T09                            |
+| Repo `github.com/sakshamm21/CampusCycle`, public at release                      | 01 §1; 08 P6-T07                     |
+| Every commit authored as Sak with no Claude lines                                | 01 §1 (`commit-msg` hook); 08 P0-T02 |
+| Admin site on Vercel from GitHub with Sak's account                              | 09 §8.6; 08 P0-T09                   |
+| APK on GitHub Releases plus a store-ready bundle; store fees not paid            | 09 §8                                |
+| Keep-alive so the free project never pauses                                      | 09 §7 (`keepalive.yml`)              |
+| Tests and resets can never touch real data: separate dev and production projects | 01 §3.4; 08 P3-T00                   |
+| Weekly encrypted backup of production                                            | 09 §7 (`backup.yml`); 08 P5-T08b     |
+| Reminders reach a rider whose app is closed (real Android push)                  | 03 §4.9; 04 §1.8; 08 P5-T01–T02      |
+| Crash reporting without personal data                                            | 08 P5-T05b                           |
+| The demo answers reliably (paid model first for the demo pool)                   | 07 §6.1                              |
+| Hindi and Hinglish questions find the right help text                            | 07 §4 (`query_en`), §13              |
+| Build runs on Sak's PC via Remote Control in the CampusCycle folder              | 08 §1; START-HERE                    |
+| Building starts only after Sak says go                                           | START-HERE; 08 §2                    |
+| OpenRouter key entered by Sak, never in chat or the repo                         | 01 §7; 08 P4-T01                     |

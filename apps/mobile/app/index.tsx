@@ -1,94 +1,25 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { Headline } from '../src/components/Headline.tsx';
-import { Text } from '../src/components/Text.tsx';
-import { useTheme } from '../src/theme/ThemeProvider.tsx';
+import { Screen } from '@/components/Screen';
+import { ErrorState } from '@/components/States';
+import { BrandMark } from '@/components/BrandMark';
+import { Pill } from '@/components/Pill';
+import { en } from '@campuscycle/shared';
+import { useSession } from '@/lib/session';
 
-export default function HomeScreen() {
-  const { mode, themePreference, setTheme, c } = useTheme();
-
+// The launch route. The gate (GateKeeper) replaces it as soon as the session is known; it only stays
+// on screen when the rider's context could not be loaded.
+export default function Index() {
+  const { error, refresh, signOut } = useSession();
   return (
-    <View style={[styles.container, { backgroundColor: c.bg }]}>
-      <View style={styles.content}>
-        <Text variant="label" tone="muted" style={styles.kicker}>
-          CAMPUSCYCLE · FOUNDATION
-        </Text>
-
-        <Headline text="hey *aanya*" size="xl" style={styles.headline} />
-
-        <Headline text="ride *anywhere*" size="l" style={styles.subheadline} />
-
-        <Text variant="body" tone="muted" style={styles.body}>
-          Current theme: {mode} ({themePreference})
-        </Text>
-
-        <View style={styles.themeToggleRow}>
-          {(['dark', 'day', 'system'] as const).map((pref) => {
-            const isSelected = themePreference === pref;
-            return (
-              <TouchableOpacity
-                key={pref}
-                onPress={() => setTheme(pref)}
-                style={[
-                  styles.toggleButton,
-                  {
-                    backgroundColor: isSelected ? c.primary : c.surface2,
-                    borderColor: c.border,
-                  },
-                ]}
-              >
-                <Text
-                  variant="button"
-                  style={{
-                    color: isSelected ? c.onPrimary : c.fg,
-                  }}
-                >
-                  {pref.toUpperCase()}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-    </View>
+    <Screen scroll={false} banners={false} testID="launch" contentStyle={{ justifyContent: 'center' }}>
+      {error ? (
+        <>
+          <ErrorState error={error} onRetry={() => void refresh()} />
+          <Pill variant="ghost" size="sm" label={en.r19.sign_out} onPress={() => void signOut()} />
+        </>
+      ) : (
+        <BrandMark size={56} />
+      )}
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  content: {
-    width: '100%',
-    maxWidth: 400,
-    alignItems: 'center',
-    gap: 16,
-  },
-  kicker: {
-    marginBottom: 8,
-  },
-  headline: {
-    textAlign: 'center',
-  },
-  subheadline: {
-    textAlign: 'center',
-  },
-  body: {
-    marginTop: 8,
-    textAlign: 'center',
-  },
-  themeToggleRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 24,
-  },
-  toggleButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-});

@@ -88,3 +88,30 @@ export function formatDateTime(iso: string, tz: string): string {
 }
 
 export const formatRelative = relativeTime;
+
+/** `12 Oct` in the college time zone. */
+export function formatDay(iso: string, tz: string): string {
+  return formatInTimeZone(new Date(iso), tz, 'd MMM');
+}
+
+/** `Oct 2026` in the college time zone: the month headers of ride history. */
+export function formatMonth(iso: string, tz: string): string {
+  return formatInTimeZone(new Date(iso), tz, 'MMM yyyy');
+}
+
+/** A finished ride's length: `mm:ss` under an hour, `h:mm` above. */
+export function formatRideClock(ms: number): string {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  if (totalSeconds < 3600) return formatTimer(ms);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  return `${hours}:${String(minutes).padStart(2, '0')}`;
+}
+
+/** Rides still needed for the next finish, by the same thresholds as SQL. */
+export function nextFinish(rides: number): { next: 'chrome' | 'holo' | null; ridesToNext: number } {
+  if (rides < FINISH_THRESHOLDS.chrome)
+    return { next: 'chrome', ridesToNext: FINISH_THRESHOLDS.chrome - rides };
+  if (rides < FINISH_THRESHOLDS.holo) return { next: 'holo', ridesToNext: FINISH_THRESHOLDS.holo - rides };
+  return { next: null, ridesToNext: 0 };
+}

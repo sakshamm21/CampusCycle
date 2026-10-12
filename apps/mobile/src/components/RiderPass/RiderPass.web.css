@@ -1,0 +1,654 @@
+/* Rider Pass for the web build. Ported from reference/ui-board.html: the Ink direction, the Signal palette
+   and the three finishes (06 §6.7). Sizes are in cqw, one hundredth of the card width. */
+
+@property --rx {
+  syntax: '<angle>';
+  inherits: true;
+  initial-value: 0deg;
+}
+@property --ry {
+  syntax: '<angle>';
+  inherits: true;
+  initial-value: 0deg;
+}
+@property --flip {
+  syntax: '<angle>';
+  inherits: true;
+  initial-value: 0deg;
+}
+@property --mx {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 50%;
+}
+@property --my {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 50%;
+}
+
+.pass-wrap {
+  --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  container-type: inline-size;
+  position: relative;
+  perspective: 1100px;
+  width: 100%;
+  font-synthesis: none;
+}
+.pass {
+  --c-fg: #f1f3f7;
+  --c-muted: rgb(241 243 247 / 0.6);
+  --c-line: rgb(255 255 255 / 0.13);
+  --c-acc: #ffd23f;
+  --c-on-acc: #16130a;
+  position: relative;
+  aspect-ratio: 1.586;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx)) rotateY(calc(var(--ry) + var(--flip)));
+  transition:
+    --flip 0.9s cubic-bezier(0.25, 1.3, 0.45, 1),
+    --rx 0.18s linear,
+    --ry 0.18s linear;
+  color: var(--c-fg);
+  user-select: none;
+  border: 0;
+  padding: 0;
+  background: none;
+  width: 100%;
+  display: block;
+  text-align: left;
+}
+.pass.interactive {
+  cursor: pointer;
+}
+.pass.flipped {
+  --flip: 180deg;
+}
+.pass[data-finish='chrome'] {
+  --c-fg: #0b0e13;
+  --c-muted: rgb(11 14 19 / 0.58);
+  --c-line: rgb(11 14 19 / 0.16);
+  --c-acc: #2448ff;
+  --c-on-acc: #ffffff;
+}
+.pass .face {
+  position: absolute;
+  inset: 0;
+  border-radius: 6cqw;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  isolation: isolate;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08) inset;
+}
+.pass .face.back {
+  transform: rotateY(180deg);
+}
+.pass-wrap::after {
+  content: '';
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  bottom: -7%;
+  height: 16%;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.55);
+  filter: blur(18px);
+  z-index: -2;
+}
+.pass-glow {
+  position: absolute;
+  inset: 6%;
+  border-radius: 8cqw;
+  background: var(--pass-glow, #ffd23f);
+  filter: blur(28px);
+  opacity: 0;
+  z-index: -1;
+  transition:
+    opacity 0.6s,
+    background-color 0.6s;
+}
+
+/* finishes */
+.pf-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  background:
+    radial-gradient(120% 90% at 0% 0%, rgb(255 255 255 / 0.11), transparent 55%),
+    repeating-linear-gradient(100deg, rgb(255 255 255 / 0.03) 0 1px, transparent 1px 4px),
+    linear-gradient(140deg, #1e232c, #0e1116 55%, #1a1f28);
+  transition: opacity 1s;
+}
+.pf-bg.chrome {
+  background:
+    radial-gradient(120% 90% at 0% 0%, rgb(255 255 255 / 0.7), transparent 50%),
+    repeating-linear-gradient(100deg, rgb(0 0 0 / 0.045) 0 1px, transparent 1px 4px),
+    linear-gradient(120deg, #dde2e9 0%, #9aa3b1 28%, #f4f6f9 48%, #8d97a6 70%, #d3d9e1 100%);
+}
+.pf-bg.holo {
+  background:
+    radial-gradient(120% 90% at 0% 0%, rgb(255 255 255 / 0.1), transparent 55%),
+    linear-gradient(140deg, #1d1f30, #0d0f17 55%, #1e1b2d);
+}
+.pf-holo {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  display: none;
+  pointer-events: none;
+}
+.pass[data-finish='holo'] .pf-holo {
+  display: block;
+  background: linear-gradient(
+    115deg,
+    transparent 12%,
+    #ff6b5e 26%,
+    #ffd23f 37%,
+    #3fe0b5 49%,
+    #4c74ff 61%,
+    #b06bff 72%,
+    transparent 86%
+  );
+  background-size: 300% 300%;
+  background-position: var(--mx) var(--my);
+  mix-blend-mode: color-dodge;
+  opacity: 0.42;
+}
+.pass[data-finish='chrome'] .pf-holo {
+  display: block;
+  background: linear-gradient(120deg, transparent 25%, rgb(255 255 255 / 0.75) 46%, transparent 62%);
+  background-size: 260% 260%;
+  background-position: var(--mx) var(--my);
+  mix-blend-mode: soft-light;
+}
+.pf-shine {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  mix-blend-mode: overlay;
+  background:
+    radial-gradient(circle at var(--mx) var(--my), rgb(255 255 255 / 0.38), transparent 42%),
+    linear-gradient(105deg, transparent 38%, rgb(255 255 255 / 0.16) 50%, transparent 62%);
+  background-size:
+    100% 100%,
+    260% 100%;
+  background-position:
+    0 0,
+    var(--mx) 0;
+}
+.pf-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background-image: var(--noise);
+  opacity: 0.14;
+  mix-blend-mode: overlay;
+}
+
+/* front layout */
+.pf-content {
+  position: absolute;
+  inset: 0;
+  padding: 6cqw 6.5cqw;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 2.4cqw;
+  transition:
+    filter 0.5s,
+    opacity 0.5s;
+}
+.pf-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pf-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 2cqw;
+  font:
+    4.2cqw/1 'ArchivoExpanded-Black',
+    sans-serif;
+  letter-spacing: -0.04em;
+}
+.pf-brand i {
+  width: 6.2cqw;
+  height: 6.2cqw;
+  border-radius: 50%;
+  background: var(--c-acc);
+  color: var(--c-on-acc);
+  display: grid;
+  place-items: center;
+  font-style: normal;
+}
+.pf-brand i svg {
+  width: 72%;
+  height: 72%;
+}
+.pf-k {
+  font:
+    2.5cqw/1 'MartianMono-Medium',
+    monospace;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+.pf-mid {
+  display: flex;
+  align-items: center;
+  gap: 3cqw;
+  margin-top: 1.5cqw;
+}
+.pf-chip {
+  position: relative;
+  min-width: 15cqw;
+  height: 11cqw;
+  border-radius: 2.6cqw;
+  display: grid;
+  place-items: center;
+  border: 0.45cqw dashed var(--c-line);
+  font:
+    2.1cqw/1 'MartianMono-Medium',
+    monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+.pf-chip b {
+  position: absolute;
+  inset: -0.45cqw;
+  border-radius: 2.6cqw;
+  display: grid;
+  place-items: center;
+  padding-inline: 2.6cqw;
+  background: var(--c-acc);
+  color: var(--c-on-acc);
+  font:
+    3.6cqw/1 'MartianMono-Bold',
+    monospace;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  background-image: linear-gradient(
+    90deg,
+    transparent 31%,
+    color-mix(in srgb, var(--c-on-acc) 22%, transparent) 31% 33%,
+    transparent 33% 67%,
+    color-mix(in srgb, var(--c-on-acc) 22%, transparent) 67% 69%,
+    transparent 69%
+  );
+}
+.pf-chip:has(b) {
+  min-width: 24cqw;
+}
+.pf-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.6cqw;
+  border-radius: 999px;
+  padding: 1.6cqw 2.6cqw;
+  font:
+    2.5cqw/1 'MartianMono-Medium',
+    monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--c-fg) 9%, transparent);
+  color: var(--c-fg);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.pf-status::before {
+  content: '';
+  width: 1.7cqw;
+  height: 1.7cqw;
+  border-radius: 50%;
+  background: #3fe0b5;
+}
+.pf-name {
+  align-self: end;
+  font:
+    8.6cqw/0.86 'ArchivoExpanded-Black',
+    sans-serif;
+  letter-spacing: -0.055em;
+  text-transform: lowercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-bottom: 0.6cqw;
+}
+.pf-name em {
+  display: block;
+  font:
+    italic 6cqw/1.1 'Fraunces-Italic',
+    serif;
+  letter-spacing: -0.01em;
+  color: var(--c-acc);
+  margin-top: 1.2cqw;
+}
+.pf-bot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2cqw;
+  font:
+    2.6cqw/1 'MartianMono-Medium',
+    monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  font-variant-numeric: tabular-nums;
+}
+.pf-bot b {
+  color: var(--c-fg);
+  font:
+    2.6cqw/1 'MartianMono-Bold',
+    monospace;
+}
+
+/* overlays: stamps */
+.pf-stamp,
+.pf-wait,
+.pf-sus {
+  position: absolute;
+  z-index: 4;
+  display: none;
+  font:
+    3.1cqw/1.15 'MartianMono-Bold',
+    monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 2.6cqw;
+  padding: 2.4cqw 3.2cqw;
+  text-align: center;
+}
+.pf-stamp {
+  right: 6cqw;
+  top: 18cqw;
+  max-width: 62cqw;
+  background: #3fe0b5;
+  color: #04150f;
+  rotate: -10deg;
+  box-shadow: 0 2cqw 6cqw -2cqw rgb(0 0 0 / 0.5);
+}
+.pf-wait {
+  right: 6cqw;
+  top: 31cqw;
+  border: 0.6cqw dashed var(--c-fg);
+  color: var(--c-fg);
+  rotate: -9deg;
+}
+.pf-sus {
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  background: #ff5470;
+  color: #fff;
+}
+.pf-sweep {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(100deg, transparent 38%, rgb(255 255 255 / 0.75) 50%, transparent 62%);
+  background-size: 260% 100%;
+}
+
+/* states */
+.pass[data-state='pending'] .pf-content {
+  filter: grayscale(1);
+  opacity: 0.42;
+}
+.pass[data-state='pending'] .pf-bg,
+.pass[data-state='pending'] .pf-holo {
+  filter: grayscale(1) brightness(0.8);
+}
+.pass[data-state='pending'] .pf-wait {
+  display: block;
+}
+.pass[data-state='pending'] .pf-status::before {
+  background: var(--c-muted);
+}
+.pass[data-state='riding'] .pf-status {
+  background: var(--c-acc);
+  color: var(--c-on-acc);
+}
+.pass[data-state='riding'] .pf-status::before {
+  background: currentColor;
+}
+.pass[data-state='overdue'] .pf-chip b,
+.pass[data-state='overdue'] .pf-status {
+  background: #ffb020;
+  color: #1f1300;
+}
+.pass[data-state='overdue'] .pf-status::before {
+  background: currentColor;
+}
+.pass[data-state='returned'] .pf-stamp {
+  display: block;
+}
+.pass[data-state='suspended'] .pf-content {
+  filter: blur(1.2cqw);
+  opacity: 0.55;
+}
+.pass[data-state='suspended'] .pf-sus {
+  display: block;
+}
+.pass[data-state='suspended'] .pf-status::before {
+  background: #ff5470;
+}
+.pass-wrap:has(.pass[data-state='riding']) .pass-glow {
+  opacity: 0.55;
+}
+.pass-wrap:has(.pass[data-state='overdue']) .pass-glow {
+  opacity: 0.6;
+  background: #ffb020;
+}
+
+/* back face */
+.pb {
+  position: absolute;
+  inset: 0;
+  padding: 5.5cqw 6.5cqw;
+  display: grid;
+  grid-template-columns: 26cqw minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  gap: 2.6cqw 5cqw;
+}
+.pb-head {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 9cqw;
+}
+.pb-qr {
+  background: #fff;
+  border-radius: 3cqw;
+  padding: 2cqw;
+  align-self: start;
+  aspect-ratio: 1;
+  max-height: 100%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.pb-qr svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.pb-ring {
+  width: 9cqw;
+  height: 9cqw;
+  transform: rotate(-90deg);
+  flex: none;
+}
+.pb-ring circle {
+  fill: none;
+  stroke-width: 3.2;
+}
+.pb-ring .bgc {
+  stroke: var(--c-line);
+}
+.pb-ring .fgc {
+  stroke: var(--c-acc);
+  stroke-linecap: round;
+  stroke-dasharray: 88;
+}
+.pb-note {
+  font:
+    3.1cqw/1.35 'Figtree-Medium',
+    sans-serif;
+  color: var(--c-fg);
+  margin: 0;
+}
+.pb-stats {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2cqw;
+  border-top: 0.3cqw solid var(--c-line);
+  padding-top: 2.6cqw;
+}
+.pb-stats div {
+  display: grid;
+  gap: 1cqw;
+  min-width: 0;
+}
+.pb-stats strong {
+  font:
+    5.4cqw/1 'ArchivoCondensed-Black',
+    sans-serif;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.pb-stats span {
+  font:
+    2.1cqw/1 'MartianMono-Medium',
+    monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+
+/* motion */
+@media (prefers-reduced-motion: no-preference) {
+  .pass-wrap.idle .pass {
+    animation: cc-sway 7s ease-in-out infinite;
+  }
+  @keyframes cc-sway {
+    0%,
+    100% {
+      --ry: -8deg;
+      --rx: 3deg;
+      --mx: 22%;
+    }
+    50% {
+      --ry: 8deg;
+      --rx: -2deg;
+      --mx: 78%;
+    }
+  }
+  .pass-wrap.docking {
+    animation: cc-thunk 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) 0.45s;
+  }
+  @keyframes cc-thunk {
+    0% {
+      translate: 0 0;
+    }
+    25% {
+      translate: 0 2.4cqw;
+      scale: 0.985;
+    }
+    60% {
+      translate: 0 -0.8cqw;
+    }
+    100% {
+      translate: 0 0;
+      scale: 1;
+    }
+  }
+  .pass-wrap.docking .pf-chip b {
+    animation: cc-dock 0.8s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+  }
+  @keyframes cc-dock {
+    0% {
+      transform: translateY(-260%) scale(1.8) rotate(-8deg);
+      opacity: 0;
+    }
+    55% {
+      transform: translateY(8%) scale(0.94);
+      opacity: 1;
+    }
+    75% {
+      transform: translateY(-4%) scale(1.02);
+    }
+    100% {
+      transform: none;
+    }
+  }
+  .pass[data-state='minting'] .pf-content {
+    animation: cc-reveal 1.3s cubic-bezier(0.6, 0, 0.2, 1) both;
+  }
+  .pass[data-state='minting'] .pf-sweep {
+    animation: cc-sweep 1.3s cubic-bezier(0.6, 0, 0.2, 1) both;
+  }
+  @keyframes cc-reveal {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+  @keyframes cc-sweep {
+    0% {
+      opacity: 1;
+      background-position: 140% 0;
+    }
+    85% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      background-position: -40% 0;
+    }
+  }
+  .pass[data-state='returned'] .pf-stamp {
+    animation: cc-stamp 0.55s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+  }
+  @keyframes cc-stamp {
+    from {
+      scale: 2.4;
+      opacity: 0;
+      rotate: 4deg;
+    }
+    to {
+      scale: 1;
+      opacity: 1;
+      rotate: -10deg;
+    }
+  }
+  .pass-wrap:has(.pass[data-state='riding']) .pass-glow,
+  .pass-wrap:has(.pass[data-state='overdue']) .pass-glow {
+    animation: cc-breathe 2.4s ease-in-out infinite;
+  }
+  @keyframes cc-breathe {
+    50% {
+      opacity: 0.25;
+    }
+  }
+  .pb-ring .fgc {
+    transition: stroke-dashoffset 1s linear;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pass {
+    transition: none;
+  }
+}

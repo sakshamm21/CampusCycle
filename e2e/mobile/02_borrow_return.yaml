@@ -1,0 +1,57 @@
+# Borrow a demo bike, ride, return it at a stand with a photo, see the receipt (09 §5).
+appId: com.sakshamm21.campuscycle
+---
+- runFlow: 01_demo_login.yaml
+- tapOn:
+    id: 'dock.borrow'
+- tapOn:
+    id: 'r11.demo_pick'
+- tapOn:
+    id: 'r11.pick.0'
+- extendedWaitUntil:
+    visible:
+      id: 'r12.slide'
+    timeout: 30000
+- swipe:
+    from:
+      id: 'r12.slide.thumb'
+    direction: RIGHT
+    duration: 800
+- extendedWaitUntil:
+    visible:
+      id: 'r13.return'
+    timeout: 30000
+- assertVisible:
+    id: 'r13.elapsed'
+- tapOn:
+    id: 'r13.return'
+- tapOn:
+    id: 'r14.stand.0'
+- extendedWaitUntil:
+    visible:
+      id: 'r14.scan'
+    timeout: 30000
+- tapOn:
+    id: 'r14.scan'
+- tapOn:
+    id: 'r11.demo_use'
+- extendedWaitUntil:
+    visible:
+      id: 'r14.shutter'
+    timeout: 30000
+- tapOn:
+    id: 'r14.shutter'
+- extendedWaitUntil:
+    visible:
+      id: 'r14.retake'
+    timeout: 30000
+- tapOn:
+    id: 'r14.finish'
+- extendedWaitUntil:
+    visible:
+      id: 'r15.receipt'
+    timeout: 60000
+- assertVisible: '.*RETURNED AT.*'
+- tapOn:
+    id: 'r15.done'
+- assertVisible: 'hey aanya'
