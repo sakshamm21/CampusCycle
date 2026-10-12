@@ -1,6 +1,6 @@
 import type { CampusClient } from './client.ts';
 import { invoke, requireUid, unwrap, unwrapAs } from './call.ts';
-import { toAppError } from '../errors.ts';
+import { AppError, toAppError } from '../errors.ts';
 import type { Database } from '../database.types.ts';
 import type {
   MyContext,
@@ -12,6 +12,7 @@ import type {
   ReturnResult,
   PassStats,
   IssueType,
+  IdCheckResult,
 } from '../types.ts';
 
 export interface SignUpInput {
@@ -254,14 +255,16 @@ export async function listMyRides(db: CampusClient, page = 0) {
   );
 }
 
+// Written out in full: supabase-js infers the row type from a literal select string only.
+const RIDE_DETAIL_COLUMNS =
+  'id, started_at, ended_at, status, late, flags, bike:bikes(short_code), start:stands!rides_start_stand_id_fkey(name), end:stands!rides_end_stand_id_fkey(name), photo_check, return_photo_path, force_note';
+
 export async function getRide(db: CampusClient, id: string) {
-  return unwrap(
-    await db
-      .from('rides')
-      .select(`${RIDE_COLUMNS}, photo_check, return_photo_path, force_note`)
-      .eq('id', id)
-      .single(),
-  );
+  // Not through unwrap(): its row type is inferred for lists, and a single row needs its own null check.
+  const { data, error } = await db.from('rides').select(RIDE_DETAIL_COLUMNS).eq('id', id).maybeSingle();
+  if (error) throw toAppError(error);
+  if (!data) throw new AppError('CC_RIDE_NOT_FOUND');
+  return data;
 }
 
 export async function listMyReports(db: CampusClient) {
@@ -316,4 +319,23 @@ export async function clearMyAiMemory(db: CampusClient): Promise<{ deleted: numb
 
 export async function deleteMyAccount(db: CampusClient): Promise<void> {
   await invoke(db, 'delete-account');
+}
+
+// R06: the result of TORQ's ID check, once it has run. RLS limits the read to the rider's own row.
+export async function getMyIdCheck(db: CampusClient): Promise<IdCheckResult | null> {
+  const uid = await requireUid(db);
+  const { data, error } = await db.from('profiles').select('id_check_result').eq('id', uid).maybeSingle();
+  if (error) throw toAppError(error);
+  return (data?.id_check_result as IdCheckResult | null | undefined) ?? null;
+}
+
+export interface IssueSuggestion {
+  type: IssueType | null;
+  note: string;
+  confidence: number;
+}
+
+// R16 snap-to-report: TORQ looks at an uploaded issue photo. `type: null` means no suggestion (03 §4.5).
+export async function suggestIssue(db: CampusClient, photoPath: string): Promise<IssueSuggestion> {
+  return invoke<IssueSuggestion>(db, 'torq-suggest', { photo_path: photoPath });
 }
