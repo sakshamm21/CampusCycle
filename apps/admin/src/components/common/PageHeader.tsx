@@ -5,13 +5,14 @@ import { cn } from '@/lib/utils';
 
 export interface PageHeaderProps {
   kicker?: string;
+  live?: boolean;
   title: string;
   lede?: string;
   actions?: React.ReactNode;
   className?: string;
 }
 
-export function PageHeader({ kicker, title, lede, actions, className = '' }: PageHeaderProps) {
+export function PageHeader({ kicker, live, title, lede, actions, className = '' }: PageHeaderProps) {
   return (
     <div
       className={cn(
@@ -20,7 +21,7 @@ export function PageHeader({ kicker, title, lede, actions, className = '' }: Pag
       )}
     >
       <div className="flex flex-col gap-2">
-        {kicker && <Kicker text={kicker} />}
+        {kicker && <Kicker text={kicker} live={live} />}
         <Headline text={title} size="l" />
         {lede && <p className="text-muted text-sm max-w-2xl">{lede}</p>}
       </div>

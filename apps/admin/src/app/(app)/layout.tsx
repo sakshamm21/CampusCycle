@@ -34,12 +34,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   const isSuperAdmin = ctx.profile.role === 'super_admin' || ctx.profile.is_owner;
-  let colleges: Array<{ id: string; name: string; short_code: string; active: boolean }> = [];
+  let colleges: Array<{ id: string; name: string; short_code: string; active: boolean; time_zone: string }> =
+    [];
 
   if (isSuperAdmin) {
     const { data: collegesData } = await supabase
       .from('colleges')
-      .select('id,name,short_code,active')
+      .select('id,name,short_code,active,time_zone')
       .order('name');
     colleges = collegesData ?? [];
   }

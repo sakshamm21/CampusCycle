@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { supabase } from '@/lib/supabase/browser';
 import { CollegeProvider, type CollegeLite } from '@/lib/scope';
@@ -50,6 +50,18 @@ export function useTheme(): ThemeContextValue {
   return ctx;
 }
 
+export function useMyContext(): MyContext {
+  const { data } = useQuery<MyContext>({
+    queryKey: ['ctx'],
+    queryFn: async () => {
+      const { data: raw, error } = await supabase.rpc('get_my_context');
+      if (error) throw error;
+      return raw as unknown as MyContext;
+    },
+  });
+  return data!;
+}
+
 export function Providers({
   children,
   ctx,
@@ -61,18 +73,19 @@ export function Providers({
   initialColleges?: CollegeLite[];
   initialCollegeId?: string;
 }) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 15_000,
-            retry: 1,
-            refetchOnWindowFocus: false,
-          },
+  const [queryClient] = useState(() => {
+    const client = new QueryClient({
+      defaultOptions: {
+        queries: {
+          staleTime: 15_000,
+          retry: 1,
+          refetchOnWindowFocus: false,
         },
-      }),
-  );
+      },
+    });
+    client.setQueryData(['ctx'], ctx);
+    return client;
+  });
 
   const initialTheme: ThemeMode =
     ctx.profile.theme === 'day' || ctx.profile.theme === 'system' ? ctx.profile.theme : 'dark';

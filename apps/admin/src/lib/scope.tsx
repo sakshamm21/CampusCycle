@@ -9,6 +9,7 @@ export interface CollegeLite {
   name: string;
   short_code: string;
   active: boolean;
+  time_zone?: string;
 }
 
 export interface CollegeContextValue {
@@ -67,6 +68,7 @@ export function CollegeProvider({
       name: ctx.college?.name ?? 'College',
       short_code: ctx.college?.short_code ?? '',
       active: true,
+      time_zone: ctx.college?.time_zone,
     }),
     [ctx.college],
   );
