@@ -11,6 +11,7 @@ export default tseslint.config(
       'supabase/functions/_shared/vendor/**',
       '**/.next/**',
       '**/dist/**',
+      '**/.expo/**',
       'apps/mobile/android/**',
       'apps/mobile/ios/**',
       'coverage/**',
