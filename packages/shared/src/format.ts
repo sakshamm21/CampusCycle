@@ -82,3 +82,9 @@ export function relativeTime(iso: string, now: Date | string = new Date()): stri
   }
   return format(date, 'd MMM');
 }
+
+export function formatDateTime(iso: string, tz: string): string {
+  return formatInTimeZone(new Date(iso), tz, 'd MMM, h:mm a');
+}
+
+export const formatRelative = relativeTime;
